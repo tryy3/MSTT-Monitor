@@ -12,14 +12,18 @@ import (
 	update "github.com/inconshreveable/go-update"
 )
 
+// UpdateService är en service för att uppdatera klienten
 type UpdateService struct {
 	Version    string
 	Identifier string
 }
 
+// updateList innehåller en lista av versioner från APIn
 type updateList struct {
 	Versions map[string]updateVersion `json:"versions"`
 }
+
+// updateVersion inehåller information om varje Version
 type updateVersion struct {
 	Download      string `json:"download"`
 	Checksum      string `json:"checksum"`
@@ -28,7 +32,9 @@ type updateVersion struct {
 	PatchDownload string `json:"patch_download"`
 }
 
+// Update försöker uppdatera klienten
 func (u *UpdateService) Update(url string) error {
+	// Hämta senaste information från APIn
 	client := &http.Client{Timeout: 10 * time.Second}
 	r, err := client.Get(url + "/download.php?software=" + u.Identifier)
 	if err != nil {
@@ -38,7 +44,6 @@ func (u *UpdateService) Update(url string) error {
 
 	upd := updateList{}
 	err = json.NewDecoder(r.Body).Decode(&upd)
-
 	if err != nil {
 		return errors.New("Can't get the latest versions: " + err.Error())
 	}
@@ -54,9 +59,11 @@ func (u *UpdateService) Update(url string) error {
 	}
 
 	if !u.containsPatches(upd.Versions, keys, pos) {
+		// Uppdatera till senaste versionen
 		return u.internalUpdate(fmt.Sprintf("%s%s", url, upd.Versions[keys[pos]].Download), upd.Versions[keys[pos]].Checksum, update.Options{})
 	}
 
+	// Uppdatera med alla patcher
 	for i := pos; i < len(keys); i++ {
 		err := u.internalUpdate(fmt.Sprintf("%s%s", url, upd.Versions[keys[i]].PatchDownload), upd.Versions[keys[i]].PatchChecksum, update.Options{
 			Patcher: update.NewBSDiffPatcher(),
@@ -69,6 +76,7 @@ func (u *UpdateService) Update(url string) error {
 	return nil
 }
 
+// containsPatches kolla om alla versioner innehåller en patch
 func (u *UpdateService) containsPatches(haystack map[string]updateVersion, versions []string, start int) bool {
 	for i := start; i < len(versions); i++ {
 		if !haystack[versions[i]].Patch {
@@ -78,13 +86,14 @@ func (u *UpdateService) containsPatches(haystack map[string]updateVersion, versi
 	return true
 }
 
+// internalUpdate laddar ner en patch/uppdatering och uppdatera klienten
 func (u *UpdateService) internalUpdate(url string, hexChecksum string, options update.Options) error {
-	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+
 	checksum, err := hex.DecodeString(hexChecksum)
 	if err != nil {
 		return err
@@ -104,6 +113,7 @@ func (u *UpdateService) internalUpdate(url string, hexChecksum string, options u
 	return nil
 }
 
+// arrayPosition loopar igenom en haystack och kollar vart needle är
 func arrayPosition(haystack []string, needle string) int {
 	for k, v := range haystack {
 		if v == needle {

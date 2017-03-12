@@ -4,20 +4,20 @@ import (
 	"strings"
 )
 
-// Command is the struct for commands
+// Command är en struct för kommandon
 type Command struct {
 	Name   string
 	Params []Argument
 }
 
-// Argument is the struct for command arguments/flags
+// Argument är en struct för kommand arguments/flaggor
 type Argument struct {
 	Name  string
 	Value string
 }
 
-// ParseCommand parses raw command strings and outputs
-// a Command struct
+// ParseCommand analyserar en rå kommand sträng
+// och strukterar den till en Command Struct
 // Example: Input: Check_cpu -cpu=1
 // Output: {
 //      Name: "Check_cpu"
@@ -27,10 +27,10 @@ type Argument struct {
 //      ]
 // }
 func ParseCommand(command string) Command {
-	// Split every space
 	commandSplit := strings.Split(command, " ")
 	cmd := Command{Name: commandSplit[0], Params: []Argument{}}
 
+	// Kommandot har flaggor
 	if len(commandSplit) > 1 {
 		for i := 1; i < len(commandSplit); i++ {
 			argumentSplit := strings.Split(commandSplit[i], "=")

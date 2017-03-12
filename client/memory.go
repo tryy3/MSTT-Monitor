@@ -6,23 +6,27 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
-type RAMType int
+// MemoryType är en typ för vilken typ
+// av minne som ska användas
+type MemoryType int
 
 const (
-	RAM RAMType = iota
-	Swap
+	RAM  MemoryType = iota // 0
+	Swap                   // 1
 )
 
-type RAMResponse struct {
-	Error string  `json:"error"`
-	Size  uint64  `json:"size"`
-	Type  RAMType `json:"type"`
+// MemoryResponse innehåller information om RAM/Swap
+type MemoryResponse struct {
+	Error string     `json:"error"`
+	Size  uint64     `json:"size"`
+	Type  MemoryType `json:"type"`
 }
 
-func RAMCheck(cmd Command) RAMResponse {
+// MemoryCheck kollar användningen av ett minnestyp
+func MemoryCheck(cmd Command) MemoryResponse {
 	t := RAM
 	total := false
-	resp := RAMResponse{}
+	resp := MemoryResponse{Type: t}
 
 	for _, args := range cmd.Params {
 		if strings.ToLower(args.Name) == "-swap" {
@@ -39,6 +43,7 @@ func RAMCheck(cmd Command) RAMResponse {
 			resp.Error = err.Error()
 			return resp
 		}
+
 		if total {
 			resp.Size = v.Total
 		} else {
@@ -51,6 +56,7 @@ func RAMCheck(cmd Command) RAMResponse {
 			resp.Error = err.Error()
 			return resp
 		}
+
 		if total {
 			resp.Size = v.Total
 		} else {
@@ -58,6 +64,6 @@ func RAMCheck(cmd Command) RAMResponse {
 		}
 		break
 	}
-	resp.Type = t
+
 	return resp
 }

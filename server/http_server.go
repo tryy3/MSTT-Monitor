@@ -2,29 +2,29 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
-	"html"
 	"net/http"
 )
 
+// ErrorResp innehåller information om response för webbsidan
 type ErrorResp struct {
 	Error   bool   `json:"error"`
 	Message string `json:"message"`
 }
 
+// StartWebServer startar Web APIn
 func StartWebServer() {
 	http.HandleFunc("/update/command", UpdateCommand)
 	http.HandleFunc("/update/client", UpdateClient)
-	http.HandleFunc("/update/group", UpdateGroup)
-	http.HandleFunc("/check", UpdateHandler)
+	//http.HandleFunc("/update/group", UpdateGroup)
+	//http.HandleFunc("/check", UpdateHandler)
 
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(config.APIAdress, nil)
+	if err != nil {
+		log.Error(err, "Can't start Web API")
+	}
 }
 
-func CheckHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-}
-
+// OutputJson är en enkel funktion som printar ut en interface i json format
 func OutputJson(w http.ResponseWriter, i interface{}) {
 	out, err := json.Marshal(i)
 	if err != nil {

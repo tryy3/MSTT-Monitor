@@ -6,19 +6,24 @@ import (
 	"time"
 )
 
+// File innehåller information om en fil
 type File struct {
 	Name    string    `json:"name"`
 	Size    int64     `json:"size"`
-	IsDir   bool      `json:"isdir"`
+	IsDir   bool      `json:"is_dir"`
 	Perms   string    `json:"perms"`
-	LastMod time.Time `json:"lastmod"`
+	LastMod time.Time `json:"last_mod"`
 }
 
+// FileResponse innehåller information om File
+// möjligheter för expandering här, kolla flera filer
+// och liknande
 type FileResponse struct {
 	Error string `json:"error"`
 	MFile File   `json:"mfile"`
 }
 
+// FileCheck kollar information om en specifik fil.
 func FileCheck(cmd Command) FileResponse {
 	file := ""
 	for _, args := range cmd.Params {

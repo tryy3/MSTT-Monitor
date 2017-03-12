@@ -6,20 +6,22 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 )
 
+// CPUInfo innehåller information om CPUn
 type CPUInfo struct {
 	Error     string `json:"error"`
 	Cores     int32  `json:"cores"`
 	ModelName string `json:"model_name"`
 }
 
+// CPUUsage innehåller information om CPU användningen
 type CPUUsage struct {
 	Error   string  `json:"error"`
 	Procent float64 `json:"procent"`
 }
 
+// CPUCheck kollar CPUn
 func CPUCheck(cmd Command) interface{} {
 	info := false
-
 	for _, args := range cmd.Params {
 		if strings.ToLower(args.Name) == "-info" {
 			info = true
@@ -43,6 +45,9 @@ func CPUCheck(cmd Command) interface{} {
 		}
 	}
 
+	// Kolla CPU procent från tidigare check
+	// finns en chans att man får tillbaka 0 procent om
+	// det är den första gången man kollar
 	f, err := cpu.Percent(0, false)
 	if err != nil {
 		return CPUUsage{Error: err.Error()}

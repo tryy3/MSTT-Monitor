@@ -1,0 +1,16 @@
+{
+	// Adress that the webserver will run under
+	APIAdress: ":8080"
+
+	// SQL Information
+	// Default SQLProtocol is mysql
+	SQLProtocol: "mysql"
+	SQLUser: "example"
+	SQLPassword: ""
+	SQLIP: "localhost"
+	SQLPort: "3306"
+	SQLDatabase: "example-database"
+
+ 	// How often the server will check clients, in seconds
+	Interval: 1
+}

@@ -6,17 +6,20 @@ import (
 	"github.com/shirou/gopsutil/disk"
 )
 
+// PartitionResponse innehåller information om en partition
 type PartitionResponse struct {
 	Name string `json:"name"`
 	Size uint64 `json:"size"`
 	Type string `json:"type"`
 }
 
+// DiscResponse innehåller information om flera PartitionResponse
 type DiscResponse struct {
 	Error      string              `json:"error"`
 	Partitions []PartitionResponse `json:"partitions"`
 }
 
+// DiscCheck kollar partitions information
 func DiscCheck(cmd Command) DiscResponse {
 	part, err := disk.Partitions(false)
 	if err != nil {
@@ -25,7 +28,6 @@ func DiscCheck(cmd Command) DiscResponse {
 
 	resp := DiscResponse{}
 	total := false
-
 	for _, args := range cmd.Params {
 		if strings.ToLower(args.Name) == "-total" {
 			total = true
@@ -37,6 +39,7 @@ func DiscCheck(cmd Command) DiscResponse {
 		if err != nil {
 			return DiscResponse{Error: err.Error()}
 		}
+
 		partition := PartitionResponse{
 			Name: p.Mountpoint,
 			Type: p.Fstype,

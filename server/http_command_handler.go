@@ -7,18 +7,21 @@ import (
 	"strings"
 )
 
+// CommandReq innehåller information för command APIn
 type CommandReq struct {
 	Type     string `json:"type"`
 	ID       int    `json:"id"`
 	ClientID int    `json:"clientid"`
 }
 
+// getCommand hämtar ett command från databasen
 func getCommand(id int) (string, error) {
 	getCommandStmt, err := db.Prepare("SELECT command FROM commands WHERE id=?")
 	if err != nil {
 		return "", err
 	}
 	defer getCommandStmt.Close()
+
 	var command string
 	err = getCommandStmt.QueryRow(id).Scan(&command)
 	if err != nil {
@@ -27,6 +30,7 @@ func getCommand(id int) (string, error) {
 	return command, nil
 }
 
+// getCommandInfo hämtar information releterat till ett kommand
 func getCommandInfo(id int, clientID int, groups []string) (check *Check, err error) {
 	command, err := getCommand(id)
 	if err != nil {
@@ -41,15 +45,18 @@ func getCommandInfo(id int, clientID int, groups []string) (check *Check, err er
 		return nil, err
 	}
 	defer getGroupCommandStmt.Close()
+
 	getCheckStmt, err := db.Prepare("SELECT id, timestamp, checked, error, finished FROM checks WHERE command_id=? AND client_id=? ORDER BY timestamp DESC")
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	defer getCheckStmt.Close()
+
 	var (
 		next_check int64
 		stop_error bool
 	)
+
 	for _, group := range groups {
 		err = getGroupCommandStmt.QueryRow(id, group).Scan(&next_check, &stop_error)
 		if err != nil {
@@ -73,10 +80,12 @@ func getCommandInfo(id int, clientID int, groups []string) (check *Check, err er
 				pastID:    -1,
 			}, nil
 		}
+
 		t, err := CreateTimestamp(timestamp, next_check)
 		if err != nil {
 			panic(err.Error())
 		}
+
 		return &Check{
 			command:       command,
 			commandID:     id,
@@ -92,8 +101,10 @@ func getCommandInfo(id int, clientID int, groups []string) (check *Check, err er
 	return nil, errors.New("Client does not belong to a group that have access to this command ID.")
 }
 
+// UpdateCommand tar hand om command releterade requests från APIn
 func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	decoder := json.NewDecoder(r.Body)
 	req := CommandReq{ID: -1, ClientID: -1}
 	err := decoder.Decode(&req)
@@ -111,6 +122,7 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 			OutputJson(w, ErrorResp{Error: true, Message: "Something is wrong with the database."})
 			return
 		}
+
 		if command != "" {
 			OutputJson(w, ErrorResp{Error: true, Message: "You can't remove existing command."})
 			return
@@ -122,9 +134,11 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			if req.ClientID != -1 {
+
 				cl.Lock()
 				cid := cl.clientID
 				cl.Unlock()
+
 				if cid == req.ClientID {
 					cl.RemoveByCommandID(req.ID)
 					break
@@ -132,6 +146,7 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 			}
 			cl.RemoveByCommandID(req.ID)
 		}
+
 		OutputJson(w, ErrorResp{Error: false, Message: "Successfully removed the command."})
 		return
 	case "update":
@@ -140,6 +155,7 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 			OutputJson(w, ErrorResp{Error: true, Message: "Something is wrong with the database."})
 			return
 		}
+
 		if command == "" {
 			OutputJson(w, ErrorResp{Error: true, Message: "Can't find the command with this id."})
 			return
@@ -150,11 +166,13 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 			if cl == nil {
 				continue
 			}
+
 			for j := cl.Length(); j >= 0; j-- {
 				ch := cl.Get(j)
 				if ch == nil {
 					continue
 				}
+
 				ch.Lock()
 				if ch.commandID == req.ID {
 					ch.command = command
@@ -162,6 +180,7 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 				ch.Unlock()
 			}
 		}
+
 		OutputJson(w, ErrorResp{Error: false, Message: "Successfully updated the command for all clients."})
 		return
 	case "insert":
@@ -169,15 +188,18 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 			OutputJson(w, ErrorResp{Error: true, Message: "You need to supply a ClientID"})
 			return
 		}
+
 		command, err := getCommand(req.ID)
 		if err != nil {
 			OutputJson(w, ErrorResp{Error: true, Message: "Something is wrong with the database."})
 			return
 		}
+
 		if command == "" {
 			OutputJson(w, ErrorResp{Error: true, Message: "Can't find the command with this id."})
 			return
 		}
+
 		for i := clients.Length(); i >= 0; i-- {
 			cl := clients.Get(i)
 			if cl == nil {
@@ -197,11 +219,14 @@ func UpdateCommand(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					OutputJson(w, ErrorResp{Error: true, Message: err.Error()})
 				}
+
 				cl.Add(check)
+
 				OutputJson(w, ErrorResp{Error: false, Message: "Added the new command to the client."})
 				return
 			}
 		}
+
 		OutputJson(w, ErrorResp{Error: true, Message: "Can't find the ClientID"})
 		return
 	default:

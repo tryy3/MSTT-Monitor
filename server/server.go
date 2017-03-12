@@ -2,13 +2,17 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net"
+	"syscall"
 
 	"database/sql"
 
 	"time"
 
+	"fmt"
+
+	"github.com/bobziuchkovski/cue"
+	"github.com/bobziuchkovski/cue/collector"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -17,7 +21,11 @@ var (
 	timestampStmt       *sql.Stmt
 	insertCheckStmt     *sql.Stmt
 	updatePastCheckStmt *sql.Stmt
+
+	config Config
 )
+
+var log = cue.NewLogger("server")
 
 // SendMessage skickar ett TCP meddelande
 func SendMessage(connIP, connPort, connType, message string) (string, error) {
@@ -40,7 +48,6 @@ func SendMessage(connIP, connPort, connType, message string) (string, error) {
 		return "", errors.New("Failed to write to server: " + err.Error())
 	}
 
-	// Return response
 	return string(reply[:n]), nil
 }
 
@@ -48,60 +55,77 @@ func SendMessage(connIP, connPort, connType, message string) (string, error) {
 // den startar alla processer så som mysql connection,
 // bygger ihop alla klienter, startar loopen för att kolla checks
 func Start() {
-	fmt.Println("Starting the MSTT-Monitor server")
+	log := cue.NewLogger("server")
+	cue.CollectAsync(cue.INFO, 10000, collector.Terminal{}.New())
+	cue.CollectAsync(cue.INFO, 10000, collector.File{
+		Path:         "logs/server.log",
+		ReopenSignal: syscall.SIGHUP, // Om jag vill rotera logs i framtiden så kan man bara skicka en SIGHUP.
+	}.New())
 
-	fmt.Println("Starting Web API server")
+	config := &Config{}
+	config.Load()
+
+	fmt.Printf("%#v\n", config)
+
+	log.Info("Starting the MSTT-Monitor server")
+
+	log.Info("Starting Web API server")
 	go StartWebServer()
 
 	// Starta en mysql connection
-	fmt.Println("Starting mysql connection")
+	log.Info("Starting mysql connection")
 	var err error
-	db, err = sql.Open("mysql", "root:abc123@(192.168.20.149:3306)/mstt-monitor")
+	db, err = sql.Open(config.SQLProtocol, fmt.Sprintf("%s:%s@(%s:%s)/%s", config.SQLUser, config.SQLPassword, config.SQLIP, config.SQLPort, config.SQLDatabase))
 	if err != nil {
-		fmt.Println("Error opening database connection:", err.Error())
+		log.Panic(err, "Error opening database connection")
 	}
 	defer db.Close()
-	fmt.Println("Mysql connection established.")
+	log.Info("Mysql connection established.")
 
 	// TODO: Bättre error handling
 	// Skapa alla prepare statements
-	fmt.Println("Getting the latest check information")
+	log.Info("Skapar mysql prepare statements")
+
 	timestampStmt, err = db.Prepare("SELECT timestamp FROM checks WHERE id = ?")
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err, "Error creating the timestamp prepare statement")
 	}
 	defer timestampStmt.Close()
+
 	insertCheckStmt, err = db.Prepare("INSERT INTO checks (command_id, client_id, response, error, finished) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err, "Error creating the insert Check prepare statement")
 	}
 	defer insertCheckStmt.Close()
+
 	updatePastCheckStmt, err = db.Prepare("Update checks SET checked=? WHERE id = ?")
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err, "Error creating the Update Past Check prepare statement")
 	}
 	defer updatePastCheckStmt.Close()
+
 	err = db.Ping()
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err, "Error pinging the database")
 	}
 
 	// Bygg ihop klient listan
-	fmt.Println("Building the clients from latest checks")
+	log.Info("Building the clients from latest checks")
 	go BuildAllClients()
 
 	for {
 		// Kolla om man fortfarande har kontakt med databasen
 		err = db.Ping()
+
 		// TODO: Försök reconnect?
 		if err != nil {
-			panic(err.Error())
+			log.Panic(err, "Error pinging the database")
 		}
 
 		// Kolla om det finns någon klient som måste kollas
 		CheckClients()
 
 		// Vänta en sekund innan den börjar om
-		time.Sleep(1 * time.Second)
+		time.Sleep(time.Duration(config.Interval) * time.Second)
 	}
 }

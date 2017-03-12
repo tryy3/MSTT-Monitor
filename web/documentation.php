@@ -6,8 +6,8 @@
         () = något värde (true|false|sträng...)<br>
         [] = friviligt
     </i></p>
-    <h3>check_ram [-total] [-swap]</h3>
-    <p>check_ram kollar RAM användningen på klienten.<br>
+    <h3>check_memory [-total] [-swap]</h3>
+    <p>check_memory kollar minnes användningen på klienten.<br>
     <b>&nbsp;&nbsp;&nbsp;&nbsp;-total </b>Om -total används så får man klienten's totala RAM, annars får man bara klientens RAM användning.<br>
     <b>&nbsp;&nbsp;&nbsp;&nbsp;-swap </b>Om -swap används så får man klienten's swap istället för RAM, man kan använda -total flaggan också.
     </p>
