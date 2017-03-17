@@ -16,7 +16,7 @@ type Clients struct {
 // och svarar med den rätta klienten, den använder
 // sig också av mutexes för att förhindra race conditions.
 func (c *Clients) Get(id int) *Client {
-	if len(c.clients) > id {
+	if len(c.clients)-1 < id {
 		return nil
 	}
 	c.Lock()
@@ -50,7 +50,7 @@ func (c *Clients) Length() int {
 // sig också av mutexes för att förhindra race conditions.
 func (c *Clients) RemoveByClientID(id int) bool {
 	c.Lock()
-	for i := len(c.clients); i >= 0; i-- {
+	for i := len(c.clients) - 1; i >= 0; i-- {
 		cl := c.clients[i]
 		if cl.clientID == id {
 			c.clients = append(c.clients[:i], c.clients[i+1:]...)
@@ -83,7 +83,7 @@ type Client struct {
 // och svarar med den rätta klienten, den använder
 // sig också av mutexes för att förhindra race conditions.
 func (c *Client) Get(id int) *Check {
-	if len(c.checks) > id {
+	if len(c.checks)-1 < id {
 		return nil
 	}
 	c.Lock()
@@ -117,7 +117,7 @@ func (c *Client) Length() int {
 // sig också av mutexes för att förhindra race conditions.
 func (c *Client) RemoveByCommandID(commandID int) bool {
 	c.Lock()
-	for i := len(c.checks); i >= 0; i-- {
+	for i := len(c.checks) - 1; i >= 0; i-- {
 		ch := c.checks[i]
 		if ch.commandID == commandID {
 			c.checks = append(c.checks[:i], c.checks[i+1:]...)
@@ -141,6 +141,7 @@ func (c *Client) Add(ch *Check) {
 type Check struct {
 	sync.Mutex              // Mutex så att man kan modifiera utan att det blir race conditions
 	command       string    // Command att skicka
+	gruppNamn     string    // Grupp namnet
 	commandID     int       // ID för command, används bara för mysql
 	nextCheck     int64     // Hur ofta denna check ska kollas
 	pastID        int64     // Senaste IDn eller om en Check pågår, så är denna ID den tidigare checken

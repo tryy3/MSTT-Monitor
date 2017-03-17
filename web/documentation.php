@@ -6,8 +6,8 @@
         () = något värde (true|false|sträng...)<br>
         [] = friviligt
     </i></p>
-    <h3>check_memory [-total] [-swap]</h3>
-    <p>check_memory kollar minnes användningen på klienten.<br>
+    <h3>check_ram [-total] [-swap]</h3>
+    <p>check_ram kollar RAM användningen på klienten.<br>
     <b>&nbsp;&nbsp;&nbsp;&nbsp;-total </b>Om -total används så får man klienten's totala RAM, annars får man bara klientens RAM användning.<br>
     <b>&nbsp;&nbsp;&nbsp;&nbsp;-swap </b>Om -swap används så får man klienten's swap istället för RAM, man kan använda -total flaggan också.
     </p>
@@ -27,8 +27,13 @@
     <b>&nbsp;&nbsp;&nbsp;&nbsp;-url=(URL) </b>-url specifierar URLn till version APIn för att man ska uppdatera klienten.
     </p>
 
-    <h3>uptime</h3>
-    <p>uptime skickar tillbaka ett svar med hur många sekunder klienten har varit igång.</p>
+    <h3>uptime -boot</h3>
+    <p>uptime skickar tillbaka ett svar med hur många sekunder klienten har varit igång.
+    <b>&nbsp;&nbsp;&nbsp;&nbsp;-boot </b>Om -boot används så får man tillbaka ett timestamp när klienten startades.
+    </p>
+
+    <h3>netusage</h3>
+    <p>netusage skickar tillbaka klientens nätverks I/O</p>
 
     <h3>ping [-ports=(port-range)]</h3>
     <p>ping skickar ett ping meddelande till en eller flera portar för att kolla om dem är öppna, kan användas för att kolla om klienten är igång eller för att kolla vilka portar som används.<br>

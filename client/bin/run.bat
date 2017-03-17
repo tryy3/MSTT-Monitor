@@ -1,4 +1,5 @@
 @echo off
+SETLOCAL
 echo "Compiling windows 64bit"
 set GOOS=windows
 set GOARCH=amd64

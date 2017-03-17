@@ -23,6 +23,8 @@ var (
 	updatePastCheckStmt *sql.Stmt
 
 	config Config
+
+	clients *Clients // En lista av alla klienter
 )
 
 var log = cue.NewLogger("server")
@@ -56,16 +58,16 @@ func SendMessage(connIP, connPort, connType, message string) (string, error) {
 // bygger ihop alla klienter, startar loopen för att kolla checks
 func Start() {
 	log := cue.NewLogger("server")
-	cue.CollectAsync(cue.INFO, 10000, collector.Terminal{}.New())
-	cue.CollectAsync(cue.INFO, 10000, collector.File{
-		Path:         "logs/server.log",
+	cue.CollectAsync(cue.DEBUG, 10000, collector.Terminal{}.New())
+	cue.CollectAsync(cue.DEBUG, 10000, collector.File{
+		Path:         "server.log",
 		ReopenSignal: syscall.SIGHUP, // Om jag vill rotera logs i framtiden så kan man bara skicka en SIGHUP.
 	}.New())
 
 	config := &Config{}
 	config.Load()
 
-	fmt.Printf("%#v\n", config)
+	clients = &Clients{}
 
 	log.Info("Starting the MSTT-Monitor server")
 

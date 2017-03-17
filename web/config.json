@@ -1,0 +1,66 @@
+{
+    "ClientTable": [
+        { "Namn": "ID", "Key": "id" },
+        { "Namn": "Namn", "Key": "namn", "Edit": true },
+        { "Namn": "IP", "Key": "ip", "Edit": true },
+        { "Namn": "Latest Check", "Key": "latest" },
+        { "Namn": "Uptime", "Key": 38, "Params": ["uptime"] },
+        { "Namn": "Hostname", "Key": 39, "Params": ["hostname"] },
+        { "Namn": "OS", "Key": 39, "Params": ["os"] },
+        { "Namn": "Platform", "Key": 39, "Params": ["platform"] },
+        { "Namn": "Client Version", "Key": 39, "Params": ["client_version"] }
+    ],
+    "ClientGraphs": [
+        { "Check": 36, "From": "1 day ago", "ChartOptions": {
+            "zoomEnabled": true,
+            "animationEnabled": true,
+            "title": {
+                "text": "CPU Användning"
+            }
+        }, "DataOptions": {
+            "type": "line"
+        }, "DataPointsOptions": [
+            {
+                "Params": ["procent"],
+                "YFormat": "procent",
+                "color": "green"
+            }
+        ]},
+        { "Check": 30, "From": "1 day ago", "ChartOptions": {
+            "zoomEnabled": true,
+            "animationEnabled": true,
+            "title": {
+                "text": "RAM Användning"
+            }
+        }, "DataOptions": {
+            "type": "line"
+        }, "DataPointsOptions": [
+            {
+                "Params": ["size"],
+                "YFormat": "GB",
+                "color": "blue"
+            }
+        ]},
+        { "Check": 44, "From": "1 day ago", "ChartOptions": {
+            "zoomEnabled": true,
+            "animationEnabled": true,
+            "title": {
+                "text": "Nätverks Användning"
+            }
+        }, "DataOptions": {
+            "type": "line"
+        }, "DataPointsOptions": [
+            {
+                "Params": ["sent"],
+                "YFormat": "MB",
+                "color": "Gray"
+            },
+            {
+                "Params": ["recv"],
+                "YFormat": "MB",
+                "color": "Chocolate"
+            }
+        ]}
+    ],
+    "StaticsGraph": []
+}

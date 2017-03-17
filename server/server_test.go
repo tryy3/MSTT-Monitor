@@ -59,19 +59,25 @@ type InfoResponse struct {
 	Interfaces []InterfaceResponse `json:"interfaces"`
 }
 
-type RAMResponse struct {
+type MemoryResponse struct {
 	Error string `json:"error"`
 	Size  uint64 `json:"size"`
 	Type  int    `json:"type"`
 }
 
+type NetResponse struct {
+	Error string `json:"error"`
+	Sent  uint64 `json:"sent"`
+	Recv  uint64 `json:"recv"`
+}
+
 func TestRam(t *testing.T) {
-	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_ram")
+	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_memory")
 	if err != nil {
 		t.Error(err)
 	}
 
-	r := &RAMResponse{}
+	r := &MemoryResponse{}
 	err = json.Unmarshal([]byte(resp), r)
 	if err != nil {
 		t.Error(err)
@@ -82,21 +88,21 @@ func TestRam(t *testing.T) {
 	}
 
 	if r.Type != 0 {
-		t.Error("For check_ram", "Type", "expected", 0, "got", r.Type)
+		t.Error("For check_Memory", "Type", "expected", 0, "got", r.Type)
 	}
 
 	if r.Size <= 0 {
-		t.Error("For check_ram", "Size", "expected a number", "got", r.Size)
+		t.Error("For check_Memory", "Size", "expected a number", "got", r.Size)
 	}
 }
 
-func TestRamTotal(t *testing.T) {
-	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_ram -total")
+func TestMemoryTotal(t *testing.T) {
+	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_memory -total")
 	if err != nil {
 		t.Error(err)
 	}
 
-	r := &RAMResponse{}
+	r := &MemoryResponse{}
 	err = json.Unmarshal([]byte(resp), r)
 	if err != nil {
 		t.Error(err)
@@ -107,21 +113,21 @@ func TestRamTotal(t *testing.T) {
 	}
 
 	if r.Type != 0 {
-		t.Error("For check_ram -total", "Type", "expected", 0, "got", r.Type)
+		t.Error("For check_Memory -total", "Type", "expected", 0, "got", r.Type)
 	}
 
 	if r.Size <= 0 {
-		t.Error("For check_ram -total", "Size", "expected a number", "got", r.Size)
+		t.Error("For check_Memory -total", "Size", "expected a number", "got", r.Size)
 	}
 }
 
 func TestSwap(t *testing.T) {
-	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_ram -swap")
+	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_memory -swap")
 	if err != nil {
 		t.Error(err)
 	}
 
-	r := &RAMResponse{}
+	r := &MemoryResponse{}
 	err = json.Unmarshal([]byte(resp), r)
 	if err != nil {
 		t.Error(err)
@@ -132,17 +138,17 @@ func TestSwap(t *testing.T) {
 	}
 
 	if r.Type != 1 {
-		t.Error("For check_ram -swap", "Type", "expected", 1, "got", r.Type)
+		t.Error("For check_Memory -swap", "Type", "expected", 1, "got", r.Type)
 	}
 }
 
 func TestSwapTotal(t *testing.T) {
-	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_ram -swap -total")
+	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "check_memory -swap -total")
 	if err != nil {
 		t.Error(err)
 	}
 
-	r := &RAMResponse{}
+	r := &MemoryResponse{}
 	err = json.Unmarshal([]byte(resp), r)
 	if err != nil {
 		t.Error(err)
@@ -153,7 +159,7 @@ func TestSwapTotal(t *testing.T) {
 	}
 
 	if r.Type != 1 {
-		t.Error("For check_ram -swap -total", "Type", "expected", 1, "got", r.Type)
+		t.Error("For check_Memory -swap -total", "Type", "expected", 1, "got", r.Type)
 	}
 }
 
@@ -291,6 +297,52 @@ func TestUptime(t *testing.T) {
 
 	if r.Uptime <= 0 {
 		t.Error("For uptime", "expected a number greated then", "0", "got", r.Uptime)
+	}
+}
+
+func TestBoottime(t *testing.T) {
+	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "uptime -boot")
+	if err != nil {
+		t.Error(err)
+	}
+
+	r := &UptimeResponse{}
+	err = json.Unmarshal([]byte(resp), r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if r.Error != "" {
+		t.Error(r.Error)
+	}
+
+	if r.Uptime <= 0 {
+		t.Error("For bootime", "expected a number greated then", "0", "got", r.Uptime)
+	}
+}
+
+func TestNetusage(t *testing.T) {
+	resp, err := SendMessage("192.168.20.164", "3333", "tcp", "netusage")
+	if err != nil {
+		t.Error(err)
+	}
+
+	r := &NetResponse{}
+	err = json.Unmarshal([]byte(resp), r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if r.Error != "" {
+		t.Error(r.Error)
+	}
+
+	if r.Recv <= 0 {
+		t.Error("For netusage", "expected a number greated then", "0", "got", r.Recv)
+	}
+
+	if r.Sent <= 0 {
+		t.Error("For netusage", "expected a number greated then", "0", "got", r.Sent)
 	}
 }
 

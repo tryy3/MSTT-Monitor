@@ -1,7 +1,11 @@
 package client
 
-import "github.com/shirou/gopsutil/host"
-import "github.com/shirou/gopsutil/net"
+import (
+	"strings"
+
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/net"
+)
 
 // UptimeResponse innehåller information om uptime på klienten
 type UptimeResponse struct {
@@ -11,6 +15,21 @@ type UptimeResponse struct {
 
 // UptimeCheck kollar hur länge en klient har varit aktiv
 func UptimeCheck(cmd Command) UptimeResponse {
+	boot := false
+	for _, args := range cmd.Params {
+		if strings.ToLower(args.Name) == "-boot" {
+			boot = true
+		}
+	}
+
+	if boot {
+		b, err := host.BootTime()
+		if err != nil {
+			return UptimeResponse{Error: err.Error()}
+		}
+		return UptimeResponse{Uptime: b}
+	}
+
 	up, err := host.Uptime()
 	if err != nil {
 		return UptimeResponse{Error: err.Error()}

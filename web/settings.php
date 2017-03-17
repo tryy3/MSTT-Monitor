@@ -1,5 +1,4 @@
-<?php 
-    var_dump(is_bool('0'));
+<?php
     function getGroups($db) {
         $out = array();
         $stmt = $db->query("SELECT id, command_id, group_name, next_check, stop_error FROM groups");
@@ -38,6 +37,7 @@
     try {
         $groups = getGroups($monitorDB);
         $commands = getCommands($monitorDB);
+        $servers = getServers($monitorDB);
     } catch(PDOException $ex) {
         echo $ex;
     }
@@ -55,9 +55,9 @@
                     <h4 class="list-group-item-heading">Groups</h4>
                     <div class="list-group-item-text">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Group name">
+                            <input type="text" class="group-name form-control" placeholder="Group name">
                             <span class="input-group-btn">
-                                <button class="btn btn-default" type="button">Add group</button>
+                                <button class="btn btn-default add-group" type="button">Add group</button>
                             </span>
                         </div>
                     </div>
@@ -66,13 +66,13 @@
                     <button type="button" class="list-group-item checks" data-target="<?php echo $group['group_name']?>">
                         <h4 class="list-group-item-heading">
                             <?php echo $group['group_name'] ?>
-                            <i class="delete-group fa fa-close fa-close-red fa-lg" style="padding-left:60%;"></i>
+                            <i class="delete-group fa fa-close fa-close-red fa-lg pull-right"></i>
                         </h4>
                     </button>
                 <?php } ?>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 group-list">
             <?php foreach($groups as $group) { ?>
                 <div class="panel panel-primary checks-item drop-group" data-check="<?php echo $group['group_name']?>" style="display:none;">
                     <div class="panel-heading"> 
@@ -96,7 +96,7 @@
                                         <option <?php echo isSelected(toBool($cmd['stop_error']), true) ?>>True</option>
                                         <option <?php echo isSelected(toBool($cmd['stop_error']), false) ?>>False</option>
                                     </select>
-                                    <i data-id="<?php echo $cmd['id']?>" class="remove-command-group fa fa-close fa-close-red fa-lg"></i>
+                                    <i data-id="<?php echo $cmd['id']?>" class="remove-command-group fa fa-close fa-close-red fa-lg pull-right"></i>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -131,10 +131,48 @@
                             <td>
                                 <select data-for="cmd" data-id="<?php echo $cmd['id']?>" data-target="format" class="form-control" style="width:80%; display:inline">
                                     <option <?php echo isSelected($cmd['format'], '') ?>>Nothing</option>
-                                    <option <?php echo isSelected($cmd['format'], 'bytes') ?>>Bytes</option>
-                                    <option <?php echo isSelected($cmd['format'], 'bits') ?>>Bits</option>
+                                    <option <?php echo isSelected($cmd['format'], 'memory') ?>>Memory</option>
+                                    <option <?php echo isSelected($cmd['format'], 'disc') ?>>Disc</option>
+                                    <option <?php echo isSelected($cmd['format'], 'procent') ?>>Procent</option>
+                                    <option <?php echo isSelected($cmd['format'], 'date') ?>>Date</option>
+                                    <option <?php echo isSelected($cmd['format'], 'seconds') ?>>Seconds</option>
+                                    <option <?php echo isSelected($cmd['format'], 'network') ?>>Network</option>
                                 </select>
-                                <i data-id="<?php echo $cmd['id']?>" class="delete-command fa fa-close fa-close-red fa-lg"></i>
+                                <i data-id="<?php echo $cmd['id']?>" class="delete-command fa fa-close fa-close-red fa-lg pull-right"></i>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Servers</h4>
+                    <div class="panel-body">
+                        <div class="input-group">
+                            <input type="text" class="server-ip form-control" placeholder="Server IP">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default add-server" type="button">Add Server</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-servers table-hover table-bordered table-condensed">
+                    <tr>
+                        <th width=10%>ID</th>
+                        <th width=45%>Namn</th>
+                        <th width=45%>IP</th>
+                    </tr>
+                    <?php foreach($servers as $server) { ?>
+                        <tr>
+                            <td><?php echo $server['id']?></td>
+                            <td contenteditable data-for="server" data-id="<?php echo $server['id']?>" data-target="namn" data-previous="<?php echo $server['namn']?>"><?php echo $server['namn']?></td>
+                            <td>
+                                <span contenteditable data-for="server" data-id="<?php echo $server['id']?>" data-target="ip" data-previous="<?php echo $server['ip'] ?>"><?php echo $server['ip']?></span>
+                                <i data-id="<?php echo $server['id']?>" class="delete-server fa fa-close fa-close-red fa-lg pull-right"></i>
                             </td>
                         </tr>
                     <?php } ?>

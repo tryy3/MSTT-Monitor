@@ -9,8 +9,6 @@ import (
 	"github.com/bobziuchkovski/cue"
 )
 
-var clients *Clients // En lista av alla klienter
-
 // CreateTimestamp skapar en timestamp från en sträng
 // lägger också till sekundrar för att få en framtids timestamp
 func CreateTimestamp(t string, next int64) (time.Time, error) {
@@ -19,7 +17,7 @@ func CreateTimestamp(t string, next int64) (time.Time, error) {
 		return time.Time{}, err
 	}
 
-	timestamp.Add(time.Second * time.Duration(next))
+	timestamp = timestamp.Add(time.Second * time.Duration(next))
 	return timestamp, nil
 }
 
@@ -167,6 +165,7 @@ func BuildClient(wg *sync.WaitGroup, cl *Client, getGroupStmt *sql.Stmt, getChec
 			ch.err = checkError
 			ch.pastID = pastID
 			ch.done = done
+			ch.gruppNamn = group
 
 			// Hämta kommandot som ska skickas
 			err = getCommandStmt.QueryRow(ch.commandID).Scan(&command)
@@ -257,18 +256,20 @@ func SendClientCheck(wg *sync.WaitGroup, cl *Client, ch *Check) {
 	// Uppdatera tidigare check så att man vet att den har kollats.
 	ch.Lock()
 
+	var command string
 	if ch.pastID != -1 {
 		_, err := updatePastCheckStmt.Exec(true, ch.pastID)
+		command = ch.command
 		ch.Unlock()
 
 		if err != nil {
 			log.Error(err, "Error updating last check")
 			return
 		}
+	} else {
+		command = ch.command
+		ch.Unlock()
 	}
-
-	command := ch.command
-	ch.Unlock()
 
 	cl.Lock()
 	ip := cl.ip
@@ -293,7 +294,7 @@ func SendClientCheck(wg *sync.WaitGroup, cl *Client, ch *Check) {
 
 	cl.Lock()
 	clientID := cl.clientID
-	ch.Unlock()
+	cl.Unlock()
 
 	// Skapa en ny check i databasen.
 	stmtResp, err := insertCheckStmt.Exec(commandID, clientID, resp, checkErr, true)

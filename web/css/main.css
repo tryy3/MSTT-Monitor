@@ -119,6 +119,14 @@ input[type=password]:hover {
     cursor: pointer;
 }
 
+.drag {
+    cursor: pointer;
+}
+
+.panel-body {
+    padding: 5px 0px;
+}
+
 
 /* CSS för fontawesome */
 

@@ -15,7 +15,7 @@ type ErrorResp struct {
 func StartWebServer() {
 	http.HandleFunc("/update/command", UpdateCommand)
 	http.HandleFunc("/update/client", UpdateClient)
-	//http.HandleFunc("/update/group", UpdateGroup)
+	http.HandleFunc("/update/group", UpdateGroup)
 	//http.HandleFunc("/check", UpdateHandler)
 
 	err := http.ListenAndServe(config.APIAdress, nil)

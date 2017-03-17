@@ -55,4 +55,13 @@ function toBool($var) {
 			return $var;
 	}
 }
+
+function getServers($db) {
+	$out = array();
+	$stmt = $db->query("SELECT id, ip, namn FROM servers");
+	while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		array_push($out, $row);
+	}
+	return $out;
+}
 ?>

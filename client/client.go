@@ -99,6 +99,8 @@ func handleRequest(conn net.Conn) {
 		resp = FileCheck(cmd)
 	case "update":
 		resp = UpdateCheck(cmd)
+	case "netusage":
+		resp = NetworkCheck(cmd)
 	default:
 		resp = ErrorResponse{Error: "Unknown command"}
 	}

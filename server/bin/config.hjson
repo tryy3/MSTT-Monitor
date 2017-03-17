@@ -5,11 +5,11 @@
 	// SQL Information
 	// Default SQLProtocol is mysql
 	SQLProtocol: "mysql"
-	SQLUser: "example"
-	SQLPassword: ""
-	SQLIP: "localhost"
+	SQLUser: "root"
+	SQLPassword: "abc123"
+	SQLIP: "192.168.20.149"
 	SQLPort: "3306"
-	SQLDatabase: "example-database"
+	SQLDatabase: "mstt-monitor"
 
  	// How often the server will check clients, in seconds
 	Interval: 1
