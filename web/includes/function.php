@@ -1,9 +1,6 @@
 <?php
-
 function active($page, $pagename){
-	
 	if($page == $pagename){
-		
 		$result = 'class="active"';
 	}
 	else {

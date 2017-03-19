@@ -1,0 +1,95 @@
+<?php
+    class Server extends Common {
+        public function create($ip) {
+            $errors = new ErrorAPI();
+
+            $stmt = $this->db->prepare("INSERT INTO servers(ip) VALUES (?)");
+            $stmt->execute(array($ip));
+            if ($stmt->rowCount() <= 0) {
+                $errors->setMessage("Something went wrong when adding a server.");
+                return $errors;
+            }
+            $errors->setError(false);
+            $errors->setMessage($this->db->lastInsertId());
+            return $errors;
+        }
+
+        public function delete($id) {
+            $errors = new ErrorAPI();
+
+            $stmt = $this->db->prepare("DELETE FROM servers WHERE id=?");
+            $stmt->execute(array($id));
+            if($stmt->rowCount() <= 0) {
+                $errors->setMessage("Server ID does not exists.");
+                return $errors;
+            }
+            $errors->setError(true);
+            $errors->setMessage("Server removed.");
+            return $errors;
+        }
+
+        public function editIP($id, $value) {
+            $errors = new ErrorAPI();
+            $stmt = $this->db->prepare("UPDATE servers SET ip=? WHERE id=?");
+            $stmt->execute(array($value, $id));
+            if($stmt->rowCount() <= 0) {
+                $errors->setMessage("Nothing changed.");
+                return $errors;
+            }
+            $errors->setError(false);
+            $errors->setMessage("Successfully edited the server.");
+            return $errors;
+        }
+
+        public function editName($id, $value) {
+            $errors = new ErrorAPI();
+            $stmt = $this->db->prepare("UPDATE servers SET namn=? WHERE id=?");
+            $stmt->execute(array($value, $id));
+            if($stmt->rowCount() <= 0) {
+                $errors->setMessage("Nothing changed.");
+                return $errors;
+            }
+            $errors->setError(false);
+            $errors->setMessage("Successfully edited the server.");
+            return $errors;
+        }
+
+        public function sendRequest($base, $form) {
+            $errors = new ErrorAPI();
+            $servers = getServers($this->db);
+            $data = json_encode($form);
+
+            foreach($servers as $server) {
+                $url = "http://".$server["ip"].$base;
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                    "Content-Type: application/json",
+                    "Content-Length: " . strlen($data)
+                ));
+
+                $resp = curl_exec($ch);
+                $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                if ( $status != 200 ) {
+                    error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch));
+                    $errors->setMessage("One or more servers failed, check logs.");
+                    return $errors;
+                }
+
+                curl_close($ch);
+                $response = json_decode($resp, true);
+                error_log("Debug: call to URL $url, response has a error ".$response["message"]);
+                if ($response["error"]) {
+                    $errors->setMessage("One or more servers failed, check logs.");
+                    return $errors;
+                }
+            }
+            
+            $errors->setError(false);
+            $errors->setMessage("Sent a server request to all servers.");
+            return $errors;
+        }
+    }
+?>

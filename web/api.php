@@ -4,7 +4,11 @@
     include_once("includes/api_functions.php");
     header('Content-Type: application/json');
 
-    $out = array("error"=>true,"message"=>"Unknown error");
+    $api = new API($monitorDB);
+
+    $errors = new Error();
+    $errors->setMessage("Unknown error");
+    
     $version = "1.0";
     if (isset($_POST["version"])) {
         $version = $_POST["version"];
@@ -24,170 +28,218 @@
                     /* Client API */
                     case "create_client":
                         if (!isset($_GET["ip"])) {
-                            $out = array("error" => true, "message" => "IP parameter is not set.");
+                            $errors->setMessage("IP parameter is not set.");
                             break;
                         }
-                        $out = createClient($monitorDB, $_GET["ip"]);
+                        $errors = $API->Client()->create($_GET["ip"]);
                         break;
                     case "delete_client":
                         if (!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
-                        $out = deleteClient($monitorDB, $_GET["id"]);
+                        $errors = $API->Client()->delete($_GET["id"]);
                         break;
                     case "edit_client":
                         if (!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["key"])) {
-                            $out = array("error" => true, "message" => "Key parameter is not set.");
+                            $errors->setMessage("Key parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["value"])) {
-                            $out = array("error" => true, "message" => "Value parameter is not set.");
+                            $errors->setMessage("Value parameter is not set.");
                             break;
                         }
-                        $out = editClient($monitorDB, $_GET["id"], $_GET["key"], $_GET["value"]);
+                        switch($_GET["key"]) {
+                            case "ip":
+                                $errors = $API->Client()->editIP($_GET["id"], $_GET["value"]);
+                                break;
+                            case "name":
+                                $errors = $API->Client()->editName($_GET["id"], $_GET["value"]);
+                                break;
+                        }
                         break;
                     case "edit_client_group":
                         if (!isset($_GET["group"])) {
-                            $out = array("error" => true, "message" => "Group parameter is not set.");
+                            $errors->setMessage("Group parameter is not set.");
                             break;
                         }
                         if(!isset($_GET["type"])) {
-                            $out = array("error" => true, "message" => "Type parameter is not set.");
+                            $errors->setMessage("Type parameter is not set.");
                             break;
                         }
                         if(!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
-                        $out = editClientGroup($monitorDB, $_GET["id"], $_GET["group"], $_GET["type"]);
+                        switch($_GET["type"]) {
+                            case "add":
+                                $errors = $API->Client()->addGroup($_GET["id"], $_GET["group"]);
+                                break;
+                            case "del":
+                                $errors = $API->Client()->delGroup($_GET["id"], $_GET["group"]);
+                                break;
+                        }
                         break;
 
                     /* Group API */
                     case "group_exists":
                         if(!isset($_GET["group"])) {
-                            $out = array("error" => true, "message", "Group parameter is not set.");
+                            $errors->setMessage("Group parameter is not set.");
                             break;
                         }
-                        $out = groupExists($monitorDB, $_GET["group"]);
+                        $errors = $API->Group()->exists($_GET["group"]);
                         break;
                     case "delete_group":
                         if (!isset($_GET["group"])) {
-                            $out = array("error" => true, "messge", "Group parameter is not set.");
+                            $errors->setMessage("Group parameter is not set.");
                             break;
                         }
-                        $out = deleteGroup($monitorDB, $_GET["group"]);
+                        $errors = $API->Group()->delete($_GET["group"]);
                         break;
                     case "edit_group":
                         if (!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["key"])) {
-                            $out = array("error" => true, "message" => "Key parameter is not set.");
+                            $errors->setMessage("Key parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["value"])) {
-                            $out = array("error" => true, "message" => "Value parameter is not set.");
+                            $errors->setMessage("Value parameter is not set.");
                             break;
                         }
-                        $out = editGroup($monitorDB, $_GET["id"], $_GET["key"], $_GET["value"]);
+                        switch($_GET["key"]) {
+                            case "next_check":
+                                $errors = $API->Group()->editNextCheck($_GET["id"], $_GET["value"]);
+                                break;
+                            case "stop_error":
+                                $errors = $API->Group()->editStopError($_GET["id"], $_GET["value"]);
+                                break;
+                        }
                         break;
                     case "remove_command_group":
                         if (!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["group"])) {
-                            $out = array("error" => true, "message" => "Group parameter is not set.");
+                            $errors->setMessage("Group parameter is not set.");
                             break;
                         }
-                        $out = removeCommandGroup($monitorDB, $_GET["id"], $_GET["group"]);
+                        $errors = $API->Group()->removeCommand($_GET["id"], $_GET["group"]);
                         break;
                     case "add_command_group":
                         if (!isset($_GET["group"])) {
-                            $out = array("error" => true, "message" => "Group parameter is not set.");
+                            $errors->setMessage("Group parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["command"])) {
-                            $out = array("error" => true, "message" => "Command parameter is not set.");
+                            $errors->setMessage("Command parameter is not set.");
                             break;
                         }
-                        $out = addCommandGroup($monitorDB, $_GET["group"], $_GET["command"]);
+                        $errors = $API->Group()->addCommand($_GET["group"], $_GET["command"]);
                         break;
 
                     /* Command API */
                     case "create_command":
-                        $out = createCommand($monitorDB);
+                        $errors = $API->Command()->create();
                         break;
                     case "delete_command":
                         if (!isset($_GET["id"])) {
-                            $out = array("error"=> true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
-                        $out = deleteCommand($monitorDB, $_GET["id"]);
+                        $errors = $API->Command()->delete($_GET["id"]);
                         break;
                     case "edit_command":
                         if (!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["key"])) {
-                            $out = array("error" => true, "message" => "Key parameter is not set.");
+                            $errors->setMessage("Key parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["value"])) {
-                            $out = array("error" => true, "message" => "Value parameter is not set.");
+                            $errors->setMessage("Value parameter is not set.");
                             break;
                         }
-                        $out = editCommand($monitorDB, $_GET["id"], $_GET["key"], $_GET["value"]);
+                        switch($_GET["key"]) {
+                            case "command":
+                                $errors = $API->Command()->editCommand($_GET["id"], $_GET["value"]);
+                                break;
+                            case "name":
+                                $errors = $API->Command()->editName($_GET["id"], $_GET["value"]);
+                                break;
+                            case "description":
+                                $errors = $API->Command()->editDescription($_GET["id"], $_GET["value"]);
+                                break;
+                            case "format":
+                                $errors = $API->Command()->editFormat($_GET["id"], $_GET["value"]);
+                                break;
+                        }
                         break;
 
                     /* Server API */
                     case "add_server":
                         if (!isset($_GET["ip"])) {
-                            $out = array("error" => true, "message" => "IP parameter is not set.");
+                            $errors->setMessage("IP parameter is not set.");
                             break;
                         }
-                        $out = addServer($monitorDB, $_GET["ip"]);
+                        $errors = $API->Server()->create($_GET["ip"]);
                         break;
                     case "del_server":
                         if (!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
-                        $out = delServer($monitorDB, $_GET["id"]);
+                        $errors = $API->Server()->delete($_GET["id"]);
                         break;
                     case "edit_server":
                         if (!isset($_GET["id"])) {
-                            $out = array("error" => true, "message" => "ID parameter is not set.");
+                            $errors->setMessage("ID parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["key"])) {
-                            $out = array("error" => true, "message" => "Key parameter is not set.");
+                            $errors->setMessage("Key parameter is not set.");
                             break;
                         }
                         if (!isset($_GET["value"])) {
-                            $out = array("error" => true, "message" => "Value parameter is not set.");
+                            $errors->setMessage("Value parameter is not set.");
                             break;
                         }
-                        $out = editServer($monitorDB, $_GET["id"], $_GET["key"], $_GET["value"]);
+                        switch($_GET["key"]) {
+                            case "ip":
+                                $errors = $API->Server()->editIP($_GET["id"], $_GET["value"]);
+                                return $errors;
+                            case "namn":
+                                $errors = $API->Server()->editName($_GET["id"], $_GET["value"]);
+                                break;
+                        }
                         break;
 
                     default:
-                        $out = array("error"=>true,"message"=>"Invalid api function");
+                        $errors->setMessage("Invalid api function");
                 }
             } else {
-                $out = array("error"=>true,"message"=>"Invalid api function");
+                $errors->setMessage("Invalid api function");
             }
             break;
         default:
-            $out = array("error"=>true,"message"=>"Invalid api version");
+            $errors->setMessage(>"Invalid api version");
     }
 
-    echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+    if ($errors->getBaseURL() != null && $errors->getForm != null) {
+        $e = $API->Server()->sendRequest($errors->getBaseURL(), $errors->getForm());
+        if ($e->getError()) {
+            $errors = $e;
+        }
+    }
+
+    echo json_encode($errors->out(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
 ?>
