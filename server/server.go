@@ -22,7 +22,7 @@ var (
 	insertCheckStmt     *sql.Stmt
 	updatePastCheckStmt *sql.Stmt
 
-	config Config
+	config *Config
 
 	clients *Clients // En lista av alla klienter
 )
@@ -64,7 +64,7 @@ func Start() {
 		ReopenSignal: syscall.SIGHUP, // Om jag vill rotera logs i framtiden så kan man bara skicka en SIGHUP.
 	}.New())
 
-	config := &Config{}
+	config = &Config{}
 	config.Load()
 
 	clients = &Clients{}

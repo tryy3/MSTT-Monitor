@@ -86,9 +86,75 @@ function createGraph($elem, chartOptions, dataPoints) {
     $elem.CanvasJSChart(opt);
 }
 
+function prettyPrint(json) {
+    json = JSON.stringify(json, null, 4);
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // Safety first
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="'+cls+'">'+match+'</span>';
+    });
+}
+
 $(document).ready(function() {
     dragg($('.drag'));
     dropGroup($('.drop-group'));
+
+    $("[name='Manual-Switch']").bootstrapSwitch({
+        size: "small",
+        onColor: "success",
+        offColor: "default",
+        onText: "Manual",
+        offText: "Commands",
+    });
+
+    $("[name='Save-Mysql']").bootstrapSwitch({
+        size: "small",
+        onColor: "success",
+        offColor: "default",
+        onText: "Save Mysql",
+        offText: "Output Only",
+    })
+
+    $("input[name='Manual-Switch']").on("switchChange.bootstrapSwitch", function(data, state) {
+        if (state) {
+            $(".manual-dropdown").attr("disabled", true);
+            $(".manual-command").attr("disabled", false);
+        } else {
+            $(".manual-dropdown").attr("disabled", false);
+            $(".manual-command").attr("disabled", true);
+        }
+    })
+
+    $(".send-manual-command").on("click", function(e) {
+        $this = $(this)
+        cmd = "";
+        id = 27;
+        command_id = -1;
+
+        if ($(".manual-command").attr("disabled") != "disabled") {
+            cmd = $(".manual-command").val();
+        } else if($(".manual-dropdown").attr("disabled") != "disabled") {
+            cmd = $(".manual-dropdown").find(":selected").data("cmd")
+            command_id = $(".manual-dropdown").find(":selected").data("id")
+        }
+
+        save = $("input[name='Save-Mysql']").bootstrapSwitch('state')
+
+        $.getJSON("/api.php", { "api": "manual_check", "command": cmd, "save": save, "id": id, "command_id": command_id}, function(data) {
+            $(".manual-output").html(prettyPrint(data))
+        })
+    })
 
     $('.button-convert-size').click(function() {
         var target = $(this).data("target")

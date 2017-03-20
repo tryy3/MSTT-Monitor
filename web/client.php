@@ -2,6 +2,9 @@
 	$configString = file_get_contents("config.json");
 	$config = json_decode($configString, true);
 
+    $a = array("1", "2", "3");
+    echo array_rand($a);
+
     function parse_seconds($seconds)
     {
         $return = '';
@@ -165,6 +168,13 @@
         return array_unique($groups);
     }
 
+    function getCommands($db) {
+        $cmds = array();
+        $stmt = $db->query("SELECT command, namn, id FROM commands");
+        if (!$stmt) return $cmds;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     function fa_icon($bool) {
         return ($bool) ? "fa-check fa-check-green" : "fa-close fa-close-red";
     }
@@ -199,6 +209,7 @@
     try {
         $client = getClient($monitorDB, $_GET['id']);
         $groups = getGroups($monitorDB);
+        $commands = getCommands($monitorDB);
 
         $stmt = $monitorDB->prepare("SELECT timestamp, response, checked, error, finished FROM checks WHERE client_id=? AND command_id=? AND timestamp >= FROM_UNIXTIME(?) AND timestamp <= FROM_UNIXTIME(?)");
         foreach($config["ClientGraphs"] as $check) {
@@ -227,6 +238,7 @@
     } catch(PDOException $ex) {
         $client = array();
         $groups = array();
+        $commands = array();
     }
 ?>
 
@@ -309,7 +321,7 @@
 
         <div class="col-md-6">
             <?php foreach($client['commands'] as $cmd) { ?>
-                <div class="panel panel-primary checks-item" data-check="<?php echo $cmd['command_id']?>" style="">
+                <div class="panel panel-primary checks-item" data-check="<?php echo $cmd['command_id']?>" style="display:none;">
                     <div class="panel-heading"> 
                         <h3 class="panel-title"><?php echo $cmd['namn'] ?></h3>
                     </div>
@@ -412,7 +424,41 @@
                 <?php }?>
             </div>
         </div>
-        <div class="col-md-2"><h3>Test3</h3></div>
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Manual check</h3>
+                    
+                    <span style="padding-right: 20px">
+                        <input type="checkbox" name="Manual-Switch" checked>
+                    </span>
+                    
+                    <span>
+                        <input type="checkbox" name="Save-Mysql" checked>
+                    </span>
+                    
+                    <div class="input-group" style="padding: 10px 0px">
+                        <input type="text" class="check-command form-control manual-command" style="width:70%" placeholder="Command">
+                        <select class="form-control manual-dropdown" style="width:30%" disabled>
+                            <option selected disabled>Command List</option>
+                            <?php
+                                foreach ($commands as $cmd) {
+                                    echo "<option data-id='".$cmd["id"]."' data-cmd='".$cmd["command"]."'>".$cmd["namn"]."</option>";
+                                }
+                            ?>
+                        </select>
+                        <span class="input-group-btn">
+                            <button class="btn btn-default send-manual-command" type="submit">Send</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="manual-output">
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="row">
     <?php

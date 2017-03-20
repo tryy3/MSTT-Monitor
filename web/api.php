@@ -4,9 +4,9 @@
     include_once("includes/api_functions.php");
     header('Content-Type: application/json');
 
-    $api = new API($monitorDB);
+    $API = new API($monitorDB);
 
-    $errors = new Error();
+    $errors = new ErrorAPI();
     $errors->setMessage("Unknown error");
     
     $version = "1.0";
@@ -222,7 +222,14 @@
                                 break;
                         }
                         break;
+                    case "manual_check":
+                        if (!isset($_GET["command"])) {
+                            $errors->setMessage("Command parameter is not set.");
+                            break;
+                        }
 
+                        $errors = $API->Server()->sendRequest("/check", $_GET, true);
+                        break;
                     default:
                         $errors->setMessage("Invalid api function");
                 }
@@ -231,10 +238,10 @@
             }
             break;
         default:
-            $errors->setMessage(>"Invalid api version");
+            $errors->setMessage("Invalid api version");
     }
 
-    if ($errors->getBaseURL() != null && $errors->getForm != null) {
+    if ($errors->getBaseURL() != null && $errors->getForm() != null) {
         $e = $API->Server()->sendRequest($errors->getBaseURL(), $errors->getForm());
         if ($e->getError()) {
             $errors = $e;

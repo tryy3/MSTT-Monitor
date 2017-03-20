@@ -54,36 +54,52 @@
             return $errors;
         }
 
-        public function sendRequest($base, $form) {
+        public function send($error, $ip, $base, $data) {
+            $url = "http://".$ip.":8080".$base;
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                "Content-Type: application/json",
+                "Content-Length: " . strlen($data)
+            ));
+
+            $resp = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            if ( $status != 200 ) {
+                error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch));
+                $error->setMessage("One or more servers failed, check logs.");
+                return true;
+            }
+
+            curl_close($ch);
+            $response = json_decode($resp, true);
+            error_log("Debug: call to URL $url, response has a error ".$response["message"]);
+            if ($response["error"]) {
+                $error->setMessage("One or more servers failed, check logs.");
+                return true;
+            }
+            return false;
+        }
+
+        public function sendRequest($base, $form, $random = false) {
             $errors = new ErrorAPI();
             $servers = getServers($this->db);
             $data = json_encode($form);
 
-            foreach($servers as $server) {
-                $url = "http://".$server["ip"].$base;
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                    "Content-Type: application/json",
-                    "Content-Length: " . strlen($data)
-                ));
-
-                $resp = curl_exec($ch);
-                $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                if ( $status != 200 ) {
-                    error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch));
-                    $errors->setMessage("One or more servers failed, check logs.");
+            // TODO: Möjlighet för distributed system, alternativt specifika servrar.
+            if ($random) {
+                $id = array_rand($servers);
+                if (!$this->send($errors, $servers[$id]["ip"], $base, $data)) {
                     return $errors;
                 }
-
-                curl_close($ch);
-                $response = json_decode($resp, true);
-                error_log("Debug: call to URL $url, response has a error ".$response["message"]);
-                if ($response["error"]) {
-                    $errors->setMessage("One or more servers failed, check logs.");
-                    return $errors;
+            } else {
+                foreach($servers as $server) {
+                    if (!$this->send($errors, $server["ip"], $base, $data)) {
+                        return $errors;
+                    }
                 }
             }
             

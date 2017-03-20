@@ -1,7 +1,7 @@
 <?php
     class Common {
         /** @var PDO The database instance. */
-        protected var $db;
+        protected $db;
 
         /**
          * __construct()

@@ -16,7 +16,7 @@ func StartWebServer() {
 	http.HandleFunc("/update/command", UpdateCommand)
 	http.HandleFunc("/update/client", UpdateClient)
 	http.HandleFunc("/update/group", UpdateGroup)
-	//http.HandleFunc("/check", UpdateHandler)
+	http.HandleFunc("/check", CheckHandler)
 
 	err := http.ListenAndServe(config.APIAdress, nil)
 	if err != nil {
