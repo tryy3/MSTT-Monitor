@@ -227,7 +227,15 @@
                             $errors->setMessage("Command parameter is not set.");
                             break;
                         }
-
+                        if (isset($_GET["save"])) {
+                            $_GET["save"] = toBool($_GET["save"]);
+                        }
+                        if (isset($_GET["id"])) {
+                            $_GET["id"] = intval($_GET["id"]);
+                        }
+                        if (isset($_GET["command_id"])) {
+                            $_GET["command_id"] = intval($_GET["command_id"]);
+                        }
                         $errors = $API->Server()->sendRequest("/check", $_GET, true);
                         break;
                     default:

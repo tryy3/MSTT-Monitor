@@ -12,7 +12,7 @@ import (
 // CreateTimestamp skapar en timestamp från en sträng
 // lägger också till sekundrar för att få en framtids timestamp
 func CreateTimestamp(t string, next int64) (time.Time, error) {
-	timestamp, err := time.ParseInLocation("2006-01-02 15:04:05", t, time.FixedZone("GMT", 0)) // Mysql timestamp kommer inte med en TimeZone
+	timestamp, err := time.ParseInLocation("2006-01-02 15:04:05", t, time.FixedZone("GMT", 3600)) // Mysql timestamp kommer inte med en TimeZone
 	if err != nil {
 		return time.Time{}, err
 	}

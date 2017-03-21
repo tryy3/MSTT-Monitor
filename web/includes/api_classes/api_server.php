@@ -65,13 +65,12 @@
                 "Content-Type: application/json",
                 "Content-Length: " . strlen($data)
             ));
-
             $resp = curl_exec($ch);
             $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             if ( $status != 200 ) {
                 error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch));
                 $error->setMessage("One or more servers failed, check logs.");
-                return true;
+                return "";
             }
 
             curl_close($ch);
@@ -79,9 +78,10 @@
             error_log("Debug: call to URL $url, response has a error ".$response["message"]);
             if ($response["error"]) {
                 $error->setMessage("One or more servers failed, check logs.");
-                return true;
+                return "";
             }
-            return false;
+
+            return $response["message"];
         }
 
         public function sendRequest($base, $form, $random = false) {
@@ -92,12 +92,17 @@
             // TODO: Möjlighet för distributed system, alternativt specifika servrar.
             if ($random) {
                 $id = array_rand($servers);
-                if (!$this->send($errors, $servers[$id]["ip"], $base, $data)) {
+                $resp = $this->send($errors, $servers[$id]["ip"], $base, $data);
+                if ($resp == "") {
+                    return $errors;
+                } else {
+                    $errors->setError(true);
+                    $errors->setMessage($resp);
                     return $errors;
                 }
             } else {
                 foreach($servers as $server) {
-                    if (!$this->send($errors, $server["ip"], $base, $data)) {
+                    if ($this->send($errors, $server["ip"], $base, $data) == "") {
                         return $errors;
                     }
                 }

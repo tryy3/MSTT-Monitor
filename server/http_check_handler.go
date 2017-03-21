@@ -67,7 +67,13 @@ func CheckHandler(w http.ResponseWriter, r *http.Request) {
 		cl.Unlock()
 
 		resp := Ping(ip, ports)
-		OutputJson(w, resp)
+		m, err := json.Marshal(resp)
+		if err != nil {
+			log.Error(err, "Something went wrong when marshaling struct.")
+			OutputJson(w, ErrorResp{Error: true, Message: "Something went wrong when turning struct into string, check logs."})
+			return
+		}
+		OutputJson(w, ErrorResp{Error: false, Message: string(m)})
 
 		if req.Save {
 

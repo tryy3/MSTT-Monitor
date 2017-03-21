@@ -453,9 +453,9 @@
                     </div>
                 </div>
                 <div class="panel-body">
-                    <div class="manual-output">
+                    <pre class="manual-output">
 
-                    </div>
+                    </pre>
                 </div>
             </div>
         </div>

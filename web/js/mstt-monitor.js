@@ -152,7 +152,7 @@ $(document).ready(function() {
         save = $("input[name='Save-Mysql']").bootstrapSwitch('state')
 
         $.getJSON("/api.php", { "api": "manual_check", "command": cmd, "save": save, "id": id, "command_id": command_id}, function(data) {
-            $(".manual-output").html(prettyPrint(data))
+            $(".manual-output").html(prettyPrint(JSON.parse(data.message)))
         })
     })
 
