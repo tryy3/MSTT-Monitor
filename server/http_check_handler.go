@@ -56,6 +56,10 @@ func CheckHandler(w http.ResponseWriter, r *http.Request) {
 
 	if strings.HasPrefix(req.Command, "ping") {
 		ports := "3333"
+		pingError := false
+		if strings.Contains(req.Command, "-error") {
+			pingError = true
+		}
 		re := regexp.MustCompile("-port=\"?([\\d,-]+)\"?")
 		p := re.FindStringSubmatch(req.Command)
 		if len(p) >= 2 {
@@ -66,7 +70,7 @@ func CheckHandler(w http.ResponseWriter, r *http.Request) {
 		ip := cl.ip
 		cl.Unlock()
 
-		resp := Ping(ip, ports)
+		resp := Ping(ip, ports, pingError)
 		m, err := json.Marshal(resp)
 		if err != nil {
 			log.Error(err, "Something went wrong when marshaling struct.")
@@ -76,7 +80,30 @@ func CheckHandler(w http.ResponseWriter, r *http.Request) {
 		OutputJson(w, ErrorResp{Error: false, Message: string(m)})
 
 		if req.Save {
+			if req.CommandID == -1 {
+				log.Error(nil, "Missing command ID.")
+				OutputJson(w, ErrorResp{Error: true, Message: "Missing Command ID for saving to mysql."})
+				return
+			}
 
+			stmt, err := db.Prepare("INSERT INTO checks(command_id, client_id, response, checked, error, finished) VALUES (?,?,?,1,?,1)")
+			if err != nil {
+				log.Error(err, "Mysql error when inserting a check.")
+				OutputJson(w, ErrorResp{Error: true, Message: "SQL error."})
+				return
+			}
+			e := false
+			if resp.Error != "" {
+				e = true
+			}
+
+			_, err = stmt.Exec(req.CommandID, req.ID, string(m), e)
+			if err != nil {
+				log.Error(err, "Mysql error when inserting a check.")
+				OutputJson(w, ErrorResp{Error: true, Message: "SQL error."})
+				return
+			}
+			OutputJson(w, ErrorResp{Error: true, Message: "Succesffully saved the response."})
 		}
 		return
 	}

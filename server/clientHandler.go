@@ -2,6 +2,8 @@ package server
 
 import (
 	"database/sql"
+	"encoding/json"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -188,8 +190,6 @@ func BuildClient(wg *sync.WaitGroup, cl *Client, getGroupStmt *sql.Stmt, getChec
 
 // CheckClients kollar igenom alla klienter och ser om en check ska skickas eller inte.
 func CheckClients() {
-	log.Info("Checking clients")
-
 	wg := &sync.WaitGroup{}
 
 	for i := clients.Length(); i >= 0; i-- {
@@ -222,9 +222,9 @@ func CheckClients() {
 				continue
 			}
 
-			// Om checken har haft ett error och failErr är sant
-			// om det är så, skippa denna check
-			if ch.err && ch.failErr {
+			// Om checken har ett error och failErr är false
+			// avbryt checken.
+			if ch.err && !ch.failErr {
 				ch.Unlock()
 				continue
 			}
@@ -257,8 +257,9 @@ func SendClientCheck(wg *sync.WaitGroup, cl *Client, ch *Check) {
 	ch.Lock()
 
 	var command string
+	var err error
 	if ch.pastID != -1 {
-		_, err := updatePastCheckStmt.Exec(true, ch.pastID)
+		_, err = updatePastCheckStmt.Exec(true, ch.pastID)
 		command = ch.command
 		ch.Unlock()
 
@@ -275,16 +276,44 @@ func SendClientCheck(wg *sync.WaitGroup, cl *Client, ch *Check) {
 	ip := cl.ip
 	cl.Unlock()
 
-	// Skicka kommandot till klienten och vänta på response
-	// TODO: Uppdatera denna funktion med JSON.
-	resp, err := SendMessage(ip, "3333", "tcp", command)
-	if err != nil || strings.Contains(resp, "Error:") {
+	var resp string
+
+	if strings.HasPrefix(command, "ping") {
+		ports := "3333"
+		pingError := false
+		if strings.Contains(command, "-error") {
+			pingError = true
+		}
+		re := regexp.MustCompile("-port=\"?([\\d,-]+)\"?")
+		p := re.FindStringSubmatch(command)
+		if len(p) >= 2 {
+			ports = p[1]
+		}
+
+		r := Ping(ip, ports, pingError)
+
+		m, err := json.Marshal(r)
+		if err != nil {
+			log.Error(err, "Something went wrong when marshaling struct.")
+		} else {
+			resp = string(m)
+		}
+	} else {
+		// Skicka kommandot till klienten och vänta på response
+		resp, err = SendMessage(ip, "3333", "tcp", command)
+	}
+
+	if err != nil || !strings.Contains(resp, `"error":""`) {
 		ch.Lock()
 		ch.err = true
 		ch.Unlock()
-
-		wg.Done()
-		return
+		if err != nil {
+			resp = err.Error()
+		}
+	} else {
+		ch.Lock()
+		ch.err = false
+		ch.Unlock()
 	}
 
 	ch.Lock()
@@ -339,6 +368,27 @@ func SendClientCheck(wg *sync.WaitGroup, cl *Client, ch *Check) {
 	ch.done = true
 	ch.checked = false
 	ch.pastID = id
+
+	fErr := ch.err
+	errFail := ch.failErr
 	ch.Unlock()
+
+	if err != nil || fErr {
+		wg.Done()
+		return
+	}
+
+	if errFail {
+		for j := cl.Length(); j >= 0; j-- {
+			che := cl.Get(j)
+			if che == nil {
+				continue
+			}
+			che.Lock()
+			che.err = false
+			che.Unlock()
+		}
+	}
+
 	wg.Done()
 }

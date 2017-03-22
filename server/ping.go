@@ -33,7 +33,7 @@ type PortRangeCheck struct {
 
 // Ping pingar en port range, finns flera olika syntax
 // "3333" "22,3333" "22-80,3333"
-func Ping(ip string, port string) PortRangeCheck {
+func Ping(ip string, port string, pingError bool) PortRangeCheck {
 	ports := []PortRange{}
 	check := PortRangeCheck{Ports: []PortCheck{}}
 
@@ -70,6 +70,9 @@ func Ping(ip string, port string) PortRangeCheck {
 			c := pingIP(ip, i)
 			check.Ports = append(check.Ports, PortCheck{Port: i, Success: c})
 			time.Sleep(time.Duration(1) * time.Second)
+			if !c && pingError {
+				check.Error = "One or more servers failed"
+			}
 		}
 	}
 	return check

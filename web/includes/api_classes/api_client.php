@@ -88,7 +88,7 @@
          */
         public function editName($id, $value) {
             $error = new ErrorAPI();
-            $stmt = $this->db->prepare("UPDATE clients SET name=? WHERE ID=?");
+            $stmt = $this->db->prepare("UPDATE clients SET namn=? WHERE ID=?");
             $stmt->execute(array($value, $id));
             if ($stmt->rowCount() <= 0) {
                 $error->setMessage("Nothing changed.");
@@ -117,10 +117,6 @@
             }
 
             $groups = $this->getGroups($id);
-            if ($groups === "") {
-                $error->setMessage("Can't find a client with this id.");
-                return $error;
-            }
             $groups = explode(',', $groups);
 
             if (in_array($group, $groups)) {
@@ -128,17 +124,18 @@
                 return $error;
             }
 
-            array_push($group, $groups);
+            array_push($groups, $group);
             if (!$this->setGroup($id, trim(implode(',', $groups), ','))) {
                 $error->setMessage("Something went wrong in the database.");
                 return $error;
             }
 
-            $error->setBaseURL("/update/client");
-            $error->setForm(array( "type" => "insert", "clientid" => intval($id), "name" => intval($group) ));
+            $error->setBaseURL("/update/group");
+            $error->setForm(array( "type" => "insert", "clientid" => intval($id), "name" => $group ));
 
             $error->setError(false);
             $error->setMessage("Updated the clients group successfully.");
+            return $error;
         }
 
         /**
@@ -176,11 +173,12 @@
                 return $error;
             }
 
-            $error->setBaseURL("/update/client");
-            $error->setForm(array( "type" => "delete", "clientid" => intval($id), "name" => intval($group) ));
+            $error->setBaseURL("/update/group");
+            $error->setForm(array( "type" => "delete", "clientid" => intval($id), "name" => $group ));
 
             $error->setError(false);
             $error->setMessage("Updated the clients group successfully.");
+            return $error;
         }
     }
 ?>

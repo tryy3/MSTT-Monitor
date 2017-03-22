@@ -139,7 +139,7 @@ $(document).ready(function() {
     $(".send-manual-command").on("click", function(e) {
         $this = $(this)
         cmd = "";
-        id = 27;
+        id = $this.data("id");
         command_id = -1;
 
         if ($(".manual-command").attr("disabled") != "disabled") {

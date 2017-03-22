@@ -448,7 +448,7 @@
                             ?>
                         </select>
                         <span class="input-group-btn">
-                            <button class="btn btn-default send-manual-command" type="submit">Send</button>
+                            <button class="btn btn-default send-manual-command" data-id="<?php echo $client['id']?>" type="submit">Send</button>
                         </span>
                     </div>
                 </div>

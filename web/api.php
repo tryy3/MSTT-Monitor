@@ -57,7 +57,7 @@
                             case "ip":
                                 $errors = $API->Client()->editIP($_GET["id"], $_GET["value"]);
                                 break;
-                            case "name":
+                            case "namn":
                                 $errors = $API->Client()->editName($_GET["id"], $_GET["value"]);
                                 break;
                         }
@@ -79,7 +79,7 @@
                             case "add":
                                 $errors = $API->Client()->addGroup($_GET["id"], $_GET["group"]);
                                 break;
-                            case "del":
+                            case "remove":
                                 $errors = $API->Client()->delGroup($_GET["id"], $_GET["group"]);
                                 break;
                         }
@@ -173,7 +173,7 @@
                             case "command":
                                 $errors = $API->Command()->editCommand($_GET["id"], $_GET["value"]);
                                 break;
-                            case "name":
+                            case "namn":
                                 $errors = $API->Command()->editName($_GET["id"], $_GET["value"]);
                                 break;
                             case "description":

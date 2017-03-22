@@ -50,6 +50,7 @@
 
             $error->setError(false);
             $error->setMessage("Group deleted.");
+            return $error;
         }
         
         /**
@@ -79,6 +80,7 @@
 
             $error->setError(false);
             $error->setMessage("Successfully edited the command.");
+            return $error;
         }
         
         /**
@@ -93,12 +95,13 @@
         public function editStopError($id, $value) {
             $error = new ErrorAPI();
             $val = toBool($value);
-            if (!isBool($val)) {
+            if (!is_bool($val)) {
                 $error->setMessage("Invalid value, value require a boolean.");
                 return $error;
             }
+
             $stmt = $this->db->prepare("UPDATE groups SET stop_error=? WHERE id=?");
-            $stmt->execute(array($value, $id));
+            $stmt->execute(array($val, $id));
             if ($stmt->rowCount() <= 0) {
                 $error->setMessage("Nothing changed.");
                 return $error;
@@ -109,6 +112,7 @@
 
             $error->setError(false);
             $error->setMessage("Successfully edited the command.");
+            return $error;
         }
 
         public function removeCommand($id, $group) {

@@ -10,57 +10,44 @@
         { "Namn": "Platform", "Key": 39, "Params": ["platform"] },
         { "Namn": "Client Version", "Key": 39, "Params": ["client_version"] }
     ],
-    "ClientGraphs": [
-        { "Check": 36, "From": "1 day ago", "ChartOptions": {
+    "ClientGraphs": [ { "Check": 36, "From": "1 day ago", "ChartOptions": {
             "zoomEnabled": true,
             "animationEnabled": true,
-            "title": {
-                "text": "CPU Användning"
-            }
-        }, "DataOptions": {
-            "type": "line"
-        }, "DataPointsOptions": [
-            {
-                "Params": ["procent"],
-                "YFormat": "procent",
-                "color": "green"
-            }
-        ]},
-        { "Check": 30, "From": "1 day ago", "ChartOptions": {
+            "exportEnabled": true,
+            "exportFileName": "Client-CPU-Graph",
+            "title": { "text": "CPU Användning" }
+        }, "DataOptions": { "type": "line" }, "DataPointsOptions": [
+            { "Params": ["procent"], "YFormat": "procent", "color": "green" }
+        ]}, { "Check": 30, "From": "1 day ago", "ChartOptions": {
             "zoomEnabled": true,
             "animationEnabled": true,
-            "title": {
-                "text": "RAM Användning"
-            }
-        }, "DataOptions": {
-            "type": "line"
-        }, "DataPointsOptions": [
-            {
-                "Params": ["size"],
-                "YFormat": "GB",
-                "color": "blue"
-            }
-        ]},
-        { "Check": 44, "From": "1 day ago", "ChartOptions": {
+            "exportEnabled": true,
+            "exportFileName": "Client-RAM-Graph",
+            "title": { "text": "RAM Användning" }
+        }, "DataOptions": { "type": "line" }, "DataPointsOptions": [
+            { "Params": ["size"], "YFormat": "GB", "color": "blue" }
+        ]}, { "Check": 44, "From": "1 day ago", "ChartOptions": {
             "zoomEnabled": true,
             "animationEnabled": true,
-            "title": {
-                "text": "Nätverks Användning"
-            }
-        }, "DataOptions": {
-            "type": "line"
-        }, "DataPointsOptions": [
-            {
-                "Params": ["sent"],
-                "YFormat": "MB",
-                "color": "Gray"
-            },
-            {
-                "Params": ["recv"],
-                "YFormat": "MB",
-                "color": "Chocolate"
-            }
+            "exportEnabled": true,
+            "exportFileName": "Client-RAM-Graph",
+            "title": { "text": "Nätverks Användning" }
+        }, "DataOptions": { "type": "line" }, "DataPointsOptions": [
+            { "Params": ["sent"], "YFormat": "MB", "color": "Gray" },
+            { "Params": ["recv"], "YFormat": "MB", "color": "Chocolate" }
         ]}
     ],
+    "FrontPage": [ { "Check": 36, "Function": "average", "Length": 7, "ChartOptions": {
+            "animationEnabled": true,
+            "exportEnabled": true,
+            "exportFileName": "All-Network-Column-Graph",
+            "toolTip": { "shared": true },
+            "title": { "text": "Daily Network Usage" }
+        }, "DataOptions": [
+            { "type": "column", "name": "Sent network traffic (mb)", "legendText": "Sent network traffic", "showInLegend": true, "DataPointsOptions": [
+                { "Params": ["sent"], "YFormat": "MB"}]},
+            { "type": "column", "name": "Recieved network traffic (mb)", "legendText": "Recieved network traffic", "showInLegend": true, "DataPointsOptions": [
+                { "Params": ["recv"], "YFormat": "MB"}]}
+        ]}],
     "StaticsGraph": []
 }

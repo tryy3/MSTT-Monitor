@@ -34,20 +34,23 @@ func SendMessage(connIP, connPort, connType, message string) (string, error) {
 	// Starta en kontakt med en TCP server
 	conn, err := net.Dial(connType, connIP+":"+connPort)
 	if err != nil {
-		return "", errors.New("Failed to connect: " + err.Error())
+		log.Error(err, "Failed to connect to server")
+		return "", errors.New("Failed to connect to server")
 	}
 	defer conn.Close()
 
 	// Skicka meddelandet
 	if _, err = conn.Write([]byte(message)); err != nil {
-		return "", errors.New("Failed to write to server: " + err.Error())
+		log.Error(err, "Failed to write to server")
+		return "", errors.New("Failed to write to server")
 	}
 
 	// Läs responsen
 	reply := make([]byte, 1024)
 	n, err := conn.Read(reply)
 	if err != nil {
-		return "", errors.New("Failed to write to server: " + err.Error())
+		log.Error(err, "Failed to read from server")
+		return "", errors.New("Failed to read from server")
 	}
 
 	return string(reply[:n]), nil
@@ -100,7 +103,7 @@ func Start() {
 	}
 	defer insertCheckStmt.Close()
 
-	updatePastCheckStmt, err = db.Prepare("Update checks SET checked=? WHERE id = ?")
+	updatePastCheckStmt, err = db.Prepare("UPDATE checks SET checked=? WHERE id = ?")
 	if err != nil {
 		log.Panic(err, "Error creating the Update Past Check prepare statement")
 	}

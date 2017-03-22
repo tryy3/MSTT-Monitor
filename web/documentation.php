@@ -35,10 +35,11 @@
     <h3>netusage</h3>
     <p>netusage skickar tillbaka klientens nätverks I/O</p>
 
-    <h3>ping [-ports=(port-range)]</h3>
+    <h3>ping [-ports=(port-range)] [-error]</h3>
     <p>ping skickar ett ping meddelande till en eller flera portar för att kolla om dem är öppna, kan användas för att kolla om klienten är igång eller för att kolla vilka portar som används.<br>
     En port range kan ha flera syntax "3333" "22,3333" "22-80,3333".<br>
-    <b>&nbsp;&nbsp;&nbsp;&nbsp;-port=(port) </b>-port specifierar vilken eller vilka portar som ping meddelandet ska gå till. <i>Default är 3333.</i>
+    <b>&nbsp;&nbsp;&nbsp;&nbsp;-port=(port) </b>-port specifierar vilken eller vilka portar som ping meddelandet ska gå till. <i>Default är 3333.</i><br>
+    <b>&nbsp;&nbsp;&nbsp;&nbsp;-error </b>Om -error används så kommer det att finnas ett error medelande om en eller flera portar misslyckades, annars kommer man bara få error medelande om det är något väldigt dåligt.
     </p>
 
     <h3>info</h3>

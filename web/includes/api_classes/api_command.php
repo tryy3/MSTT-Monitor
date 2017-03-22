@@ -60,7 +60,7 @@
         public function editCommand($id, $value) {
             $error = new ErrorAPI();
             $stmt = $this->db->prepare("UPDATE commands SET command=? WHERE id=?");
-            if (!$this->updateCommand($stmt, array($id, $value))) {
+            if (!$this->updateCommand($stmt, array($value, $id))) {
                 $error->setMessage("Nothing changed.");
                 return $error;
             }
@@ -84,8 +84,8 @@
          */
         public function editName($id, $value) {
             $error = new ErrorAPI();
-            $stmt = $this->db->prepare("UPDATE commands SET name=? WHERE id=?");
-            if (!$this->updateCommand($stmt, array($id, $value))) {
+            $stmt = $this->db->prepare("UPDATE commands SET namn=? WHERE id=?");
+            if (!$this->updateCommand($stmt, array($value, $id))) {
                 $error->setMessage("Nothing changed.");
                 return $error;
             }
@@ -107,7 +107,7 @@
         public function editDescription($id, $value) {
             $error = new ErrorAPI();
             $stmt = $this->db->prepare("UPDATE commands SET description=? WHERE id=?");
-            if (!$this->updateCommand($stmt, array($id, $value))) {
+            if (!$this->updateCommand($stmt, array($value, $id))) {
                 $error->setMessage("Nothing changed.");
                 return $error;
             }
@@ -129,7 +129,7 @@
         public function editFormat($id, $value) {
             $error = new ErrorAPI();
             $stmt = $this->db->prepare("UPDATE commands SET format=? WHERE id=?");
-            if (!$this->updateCommand($stmt, array($id, $value))) {
+            if (!$this->updateCommand($stmt, array($value, $id))) {
                 $error->setMessage("Nothing changed.");
                 return $error;
             }
