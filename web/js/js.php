@@ -8,11 +8,21 @@
 <script type="text/javascript">
 $(function () {
 	<?php
+        $options = array();
         if ($page == "client") {
+            $options["page"] = "client";
             foreach($checks as $k => $c) {
                 echo "createGraph($('#graphCheck[data-check=\"".$k."\"]'), ".
-                    json_encode($c["ChartOptions"]).", ".
-                    json_encode($c["dataPoints"]).");\n";
+                    json_encode($c->Output()).",".
+                    json_encode($options).");\n";
+            }
+        }
+        if ($page == "start") {
+            $options["page"] = "start";
+            foreach($graphs as $k => $g) {
+                echo "createGraph($('#graphCheck[data-check=\"".$k."\"]'), ".
+                    json_encode($g->Output()).",".
+                    json_encode($options). ");\n";
             }
         }
     ?>

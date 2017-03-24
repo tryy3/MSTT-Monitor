@@ -1,9 +1,7 @@
 <?php
+    include_once("includes/Graph.php");
 	$configString = file_get_contents("config.json");
 	$config = json_decode($configString, true);
-
-    $a = array("1", "2", "3");
-    echo array_rand($a);
 
     function parse_seconds($seconds)
     {
@@ -211,29 +209,11 @@
         $groups = getGroups($monitorDB);
         $commands = getCommands($monitorDB);
 
-        $stmt = $monitorDB->prepare("SELECT timestamp, response, checked, error, finished FROM checks WHERE client_id=? AND command_id=? AND timestamp >= FROM_UNIXTIME(?) AND timestamp <= FROM_UNIXTIME(?)");
         foreach($config["ClientGraphs"] as $check) {
-            $arr = array();
-            if (!isset($check["Check"]) || !isset($check["From"])) {
-                break;
-            }
-            if(isset($check["To"])) {
-                $arr["to"] = $check["To"];
-            }
-            $arr["check"] = $check["Check"];
-            $arr["from"] = $check["From"];
-            $arr["DataPointsOptions"] = $check["DataPointsOptions"];
-            $arr["DataOptions"] = $check["DataOptions"];
-            $ch = getCheck($stmt, $client["id"], $arr);
-
-            $a = array();
-            if (isset($check["ChartOptions"])) {
-                $a["ChartOptions"] = $check["ChartOptions"];
-            } else {
-                $a["ChartOptions"] = array();
-            }
-            $a["dataPoints"] = $ch;
-            array_push($checks, $a);
+            $graph = new Graph();
+            $graph->Parse($check);
+            $graph->FillDataPoints($monitorDB, $client['id']);
+            array_push($checks, $graph);
         }
     } catch(PDOException $ex) {
         $client = array();

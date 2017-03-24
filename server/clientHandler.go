@@ -386,6 +386,7 @@ func SendClientCheck(wg *sync.WaitGroup, cl *Client, ch *Check) {
 			}
 			che.Lock()
 			che.err = false
+			che.checked = false
 			che.Unlock()
 		}
 	}

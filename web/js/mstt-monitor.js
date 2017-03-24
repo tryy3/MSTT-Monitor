@@ -68,8 +68,32 @@ function dropGroup($elem) {
     })
 }
 
-function createGraph($elem, chartOptions, dataPoints) {
-    var opt = {
+function getDate(v) {
+    var d = new Date(v*1000);
+    return ("0"+d.getUTCHours()).slice(-2)+":"+
+        ("0"+d.getUTCMinutes()).slice(-2)+":"+
+        ("0"+d.getUTCSeconds()).slice(-2)
+}
+
+function format(value, format) {
+    switch(format) {
+        case "%":
+            return value
+        case "GB":
+            return (value/1000/1000/1000).toFixed(2)
+        case "MB":
+            return (value/1000/1000).toFixed(2)
+        case "KB":
+            return (value/1000).toFixed(2)
+        case "B":
+            return value
+        default:
+            return value
+    }
+}
+
+function createGraph($elem, canvasOptions, options) {
+    /*var opt = {
         "axisX": {
             "labelFormatter": function(e) {
                 var d = new Date(e.value * 1000);
@@ -82,8 +106,43 @@ function createGraph($elem, chartOptions, dataPoints) {
         },
         "data": dataPoints
     }
-    Object.assign(opt, chartOptions)
-    $elem.CanvasJSChart(opt);
+    Object.assign(opt, chartOptions)*/
+    if (!canvasOptions.axisX) { canvasOptions.axisX = {} }
+    if (!canvasOptions.axisY) { canvasOptions.axisY = {} }
+    if (!canvasOptions.toolTip) { canvasOptions.toolTip = {} }
+
+    if (options.page && options.page == "client") {
+        canvasOptions.axisX.labelFormatter = function(e) {
+            return getDate(e.value)
+        }
+    }
+
+    canvasOptions.axisY.labelFormatter = function(e) {
+        return format(e.value, e.axis.suffix) + " "
+    }
+
+    canvasOptions.toolTip.contentFormatter = function(e) {
+        var content = "";
+        var title = "";
+        for (var i = 0; i < e.entries.length; i++) {
+            if (title == "") {
+                if (options.page && options.page == "client") {
+                    title += "<strong>"+getDate(e.entries[i].dataPoint.x)+"</strong><br>"
+                } else if (options.page && options.page == "start") {
+                    title += "<strong>"+e.entries[i].dataPoint.label+"</strong><br>"
+                }
+            }
+
+            content += "<span style='color:" + e.entries[i].dataSeries.color+"'>"
+            content += "<strong>"+e.entries[i].dataSeries.name + ":</strong> "
+            content += format(e.entries[i].dataPoint.y, e.entries[i].dataSeries.axisY.get("suffix"))
+            content += " "+e.entries[i].dataSeries.axisY.get("suffix")
+            content += "</span>"
+            content += "<br>";
+        }
+        return title + content
+    }
+    $elem.CanvasJSChart(canvasOptions);
 }
 
 function prettyPrint(json) {

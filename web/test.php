@@ -1,3 +1,7 @@
+<?php
+    echo date("Y-m-d H:i:s", strtotime("5 day ago 00:00:00"));
+?>
+
 <div class="col-md-2"></div>
 
 <div class="col-md-8">
