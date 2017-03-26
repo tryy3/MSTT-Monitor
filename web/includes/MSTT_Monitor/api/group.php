@@ -1,5 +1,7 @@
 <?php
-    class Group extends Common {
+    namespace MSTT_Monitor\API;
+
+    class Group extends \MSTT_Monitor\Common {
         /**
          * exists()
          *

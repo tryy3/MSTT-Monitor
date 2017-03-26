@@ -1,5 +1,7 @@
 <?php
-    class Client extends Common {
+    namespace MSTT_Monitor\API;
+
+    class Client extends \MSTT_Monitor\Common {
         /**
          * create()
          *

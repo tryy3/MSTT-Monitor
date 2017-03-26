@@ -1,5 +1,7 @@
 <?php
-    class Server extends Common {
+    namespace MSTT_Monitor\API;
+
+    class Server extends \MSTT_Monitor\Common {
         public function create($ip) {
             $errors = new ErrorAPI();
 

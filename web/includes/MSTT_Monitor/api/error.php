@@ -1,4 +1,6 @@
 <?php
+    namespace MSTT_Monitor\API;
+
     /**
      * This class acts as a representation of an API error.
      * It will contain a message if it went well or not,

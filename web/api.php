@@ -1,12 +1,14 @@
 <?php
+    use MSTT_MONITOR\API as API;
+
     include_once("includes/db_connect.php");
     include_once("includes/function.php");
-    include_once("includes/api_functions.php");
+    include_once("includes/api/api.php");
     header('Content-Type: application/json');
 
-    $API = new API($monitorDB);
+    $API = new API\API($monitorDB);
 
-    $errors = new ErrorAPI();
+    $errors = new API\ErrorAPI();
     $errors->setMessage("Unknown error");
     
     $version = "1.0";

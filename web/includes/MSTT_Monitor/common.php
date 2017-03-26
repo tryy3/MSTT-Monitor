@@ -1,4 +1,6 @@
 <?php
+    namespace MSTT_Monitor;
+
     class Common {
         /** @var PDO The database instance. */
         protected $db;

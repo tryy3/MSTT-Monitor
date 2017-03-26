@@ -1,5 +1,7 @@
 <?php
-    class Command extends Common {
+    namespace MSTT_Monitor\API;
+
+    class Command extends \MSTT_Monitor\Common {
         /**
          * create()
          *
