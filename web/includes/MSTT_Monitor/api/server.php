@@ -77,7 +77,6 @@
 
             curl_close($ch);
             $response = json_decode($resp, true);
-            error_log("Debug: call to URL $url, response has a error ".$response["message"]);
             if ($response["error"]) {
                 $error->setMessage("One or more servers failed, check logs.");
                 return "";

@@ -1,12 +1,12 @@
 <?php
     namespace MSTT_Monitor\API;
 
-    include_once("../common.php");
-    include_once("error.php");
-    include_once("client.php");
-    include_once("command.php");
-    include_once("group.php");
-    include_once("server.php");
+    include_once(__DIR__."/../common.php");
+    include_once(__DIR__."/error.php");
+    include_once(__DIR__."/client.php");
+    include_once(__DIR__."/command.php");
+    include_once(__DIR__."/group.php");
+    include_once(__DIR__."/server.php");
 
     class API {
         private $client;

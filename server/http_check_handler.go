@@ -86,7 +86,7 @@ func CheckHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			stmt, err := db.Prepare("INSERT INTO checks(command_id, client_id, response, checked, error, finished) VALUES (?,?,?,1,?,1)")
+			stmt, err := db.Prepare("INSERT INTO checks(command_id, client_id, response, checked, error, finished) VALUES (?,?,?,0,?,1)")
 			if err != nil {
 				log.Error(err, "Mysql error when inserting a check.")
 				OutputJson(w, ErrorResp{Error: true, Message: "SQL error."})
@@ -106,5 +106,54 @@ func CheckHandler(w http.ResponseWriter, r *http.Request) {
 			OutputJson(w, ErrorResp{Error: true, Message: "Succesffully saved the response."})
 		}
 		return
+	}
+
+	cl.Lock()
+	ip := cl.ip
+	cl.Unlock()
+	resp, err := SendMessage(ip, "3333", "tcp", req.Command)
+
+	if err != nil {
+		log.Error(err, "Something went wrong when connecting to client.")
+		OutputJson(w, ErrorResp{Error: true, Message: "Can't connect to client."})
+		return
+	}
+
+	OutputJson(w, ErrorResp{Error: false, Message: string(resp)})
+
+	if req.Save {
+		e := false
+		if err != nil || !strings.Contains(resp, `"error":""`) {
+			e = true
+		}
+
+		if req.CommandID == -1 {
+			log.Error(nil, "Missing command ID.")
+			OutputJson(w, ErrorResp{Error: true, Message: "Missing Command ID for saving to mysql."})
+			return
+		}
+
+		stmt, err := db.Prepare("INSERT INTO checks(command_id, client_id, response, checked, error, finished) VALUES (?,?,?,0,?,1)")
+		if err != nil {
+			log.Error(err, "Mysql error when inserting a check.")
+			OutputJson(w, ErrorResp{Error: true, Message: "SQL error."})
+			return
+		}
+
+		_, err = stmt.Exec(req.CommandID, req.ID, string(resp), e)
+		if err != nil {
+			log.Error(err, "Mysql error when inserting a check.")
+			OutputJson(w, ErrorResp{Error: true, Message: "SQL error."})
+			return
+		}
+		OutputJson(w, ErrorResp{Error: false, Message: "Succesffully saved the response."})
+
+		// TODO: Implement this
+		/*ch := cl.GetCheckByCommandID(req.CommandID)
+		if ch != nil {
+			ch.Lock()
+			nextCheck := ch.nextCheck
+			ch.Unlock()
+		}*/
 	}
 }

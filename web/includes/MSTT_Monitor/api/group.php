@@ -37,7 +37,7 @@
             $updateClientStmt = $this->db->prepare("UPDATE clients SET group_names=? WHERE id=?");
 
             $getClientStmt = $db->query("SELECT id, group_names FROM clients");
-            while($row = $getClientStmt->fetch(PDO::FETCH_ASSOC)) {
+            while($row = $getClientStmt->fetch(\PDO::FETCH_ASSOC)) {
                 $groups = explode(",", $row["group_names"]);
                 $key = array_search($group, $groups);
                 if ($key === false) {
@@ -122,7 +122,7 @@
 
             $getCommandStmt = $this->db->prepare("SELECT command_id FROM Groups WHERE id=?");
             $getCommandStmt->execute(array($id));
-            $command = $getCommandStmt->fetch(PDO::FETCH_ASSOC);
+            $command = $getCommandStmt->fetch(\PDO::FETCH_ASSOC);
 
             $checkIDStmt = $this->db->prepare("DELETE FROM groups WHERE id=?");
             $checkIDStmt->execute(array($id));
@@ -149,7 +149,7 @@
 
             $checkGroupStmt->execute(array($group));
             if ($checkGroupStmt->rowCount() > 0) {
-                while($row = $checkGroupStmt->fetch(PDO::FETCH_ASSOC)) {
+                while($row = $checkGroupStmt->fetch(\PDO::FETCH_ASSOC)) {
                     if ($row["command_id"] == $commandID) {
                         $errors->setMessage("Group already have access to this command.");
                         return $errors;
@@ -162,7 +162,7 @@
                 $errors->setMessage("Command does not exists.");
                 return $errors;
             }
-            $cmd = $checkCommandStmt->fetch(PDO::FETCH_ASSOC)["namn"];
+            $cmd = $checkCommandStmt->fetch(\PDO::FETCH_ASSOC)["namn"];
 
             $insertCommandStmt->execute(array($commandID, $groupName, -1, 0));
 

@@ -143,7 +143,7 @@
                                 if (isset($v["error"]) && $v["error"]) {
                                     continue;
                                 }
-                                $json = $this->parseParams($this->InternalOptions["Params"], json_decode($v["response"], true));
+                                $json = ParseParams($this->InternalOptions["Params"], json_decode($v["response"], true));
 
                                 if (!isset($prev[$v["client_id"]])) {
                                     $prev[$v["client_id"]] = $json;
@@ -177,7 +177,7 @@
                         $prev = 0;
                         $dataPoints = array();
                         foreach ($data as $d) {
-                            $YValue = $this->parseParams($this->InternalOptions["Params"], json_decode($d["response"], true));
+                            $YValue = ParseParams($this->InternalOptions["Params"], json_decode($d["response"], true));
                             $v = $YValue;
 
                             if ($prev <= 0) {
@@ -207,18 +207,11 @@
 
                 $dataPoints = array();
                 foreach ($data as $d) {
-                    $v = $this->parseParams($this->InternalOptions["Params"], json_decode($d["response"], true));
+                    $v = ParseParams($this->InternalOptions["Params"], json_decode($d["response"], true));
                     array_push($dataPoints, array("x" => strtotime($d["timestamp"]), "y" => $v));
                 }
                 $this->DataPoints = $dataPoints;
             }
-        }
-
-        public function ParseParams($params, $value) {
-            foreach($params as $p) {
-                $value = $value[$p];
-            }
-            return $value;
         }
 
         public function Output() {

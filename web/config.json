@@ -4,10 +4,10 @@
         { "Namn": "Namn", "Key": "namn" },
         { "Namn": "IP", "Key": "ip" },
         { "Namn": "Grupper", "Key": "group_names" },
-        { "Namn": "Senaste check", "Key": "timestamp" },
+        { "Namn": "Senaste check", "Key": "latest" },
         { "Namn": "Aktiv", "Function": "warnings", "Check": 45, "Warnings": [
             { "Amount": 0, "Color": "Green", "Symbol": "check-circle" },
-            { "Amount": 1, "Color": "Yellow", "Symbol": "info-circle" },
+            { "Amount": 1, "Color": "Khaki", "Symbol": "info-circle" },
             { "Amount": 2, "Color": "Red", "Symbol": "times-circle" }
         ]}
     ],
@@ -16,11 +16,23 @@
         { "Namn": "Namn", "Key": "namn", "Edit": true },
         { "Namn": "IP", "Key": "ip", "Edit": true },
         { "Namn": "Latest Check", "Key": "latest" },
-        { "Namn": "Uptime", "Key": 38, "Params": ["uptime"] },
-        { "Namn": "Hostname", "Key": 39, "Params": ["hostname"] },
-        { "Namn": "OS", "Key": 39, "Params": ["os"] },
-        { "Namn": "Platform", "Key": 39, "Params": ["platform"] },
-        { "Namn": "Client Version", "Key": 39, "Params": ["client_version"] }
+        { "Namn": "Uptime", "Key": 38, "Params": ["uptime"]},
+        { "Namn": "Hostname", "Key": 39, "Params": ["hostname"], "Manual": [
+            {"Since": "now", "Color": "Green"},
+            {"Since": "3 months ago", "Color": "Khaki"},
+            {"Since": "4 months ago", "Color": "Red"}]},
+        { "Namn": "OS", "Key": 39, "Params": ["os"], "Manual": [
+            {"Since": "now", "Color": "Green"},
+            {"Since": "3 months ago", "Color": "Khaki"},
+            {"Since": "4 months ago", "Color": "Red"}]},
+        { "Namn": "Platform", "Key": 39, "Params": ["platform"], "Manual": [
+            {"Since": "now", "Color": "Green"},
+            {"Since": "3 months ago", "Color": "Khaki"},
+            {"Since": "4 months ago", "Color": "Red"}]},
+        { "Namn": "Client Version", "Key": 39, "Params": ["client_version"], "Manual": [
+            {"Since": "now", "Color": "Green"},
+            {"Since": "3 months ago", "Color": "Khaki"},
+            {"Since": "4 months ago", "Color": "Red"}]}
     ],
     "ClientGraphs": [ { "Check": 36, "CheckType": "client", "From": "1 day ago", "ChartOptions": {
             "zoomEnabled": true,

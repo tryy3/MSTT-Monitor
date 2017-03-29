@@ -61,4 +61,11 @@ function getServers($db) {
 	}
 	return $out;
 }
+
+function ParseParams($params, $value) {
+	foreach($params as $p) {
+		$value = $value[$p];
+	}
+	return $value;
+}
 ?>

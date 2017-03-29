@@ -138,9 +138,13 @@ input[type=password]:hover {
     color: red;
 }
 
+.refresh-check {
+    cursor: pointer;
+}
+
 pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
-.string { color: green; }
-.number { color: darkorange; }
-.boolean { color: blue; }
-.null { color: magenta; }
-.key { color: red; }
+.string { color: rgba(109, 109, 108, 1); }
+.number { color: rgba(40, 30, 240, 1); }
+.boolean { color: rgba(40, 30, 240, 1); }
+.null { color: rgba(40, 30, 240, 1); }
+.key { font-weight: bold; color: rgba(23, 180, 75, 1); }

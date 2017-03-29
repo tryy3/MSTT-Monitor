@@ -78,7 +78,7 @@ function getDate(v) {
 function format(value, format) {
     switch(format) {
         case "%":
-            return value
+            return value.toFixed(2)
         case "GB":
             return (value/1000/1000/1000).toFixed(2)
         case "MB":
@@ -93,20 +93,6 @@ function format(value, format) {
 }
 
 function createGraph($elem, canvasOptions, options) {
-    /*var opt = {
-        "axisX": {
-            "labelFormatter": function(e) {
-                var d = new Date(e.value * 1000);
-                return ("0" + (d.getUTCMonth()+1)).slice(-2) + "/" +
-                ("0" + d.getUTCDate()).slice(-2) + " " +
-                ("0" + d.getUTCHours()).slice(-2) + ":" +
-                ("0" + d.getUTCMinutes()).slice(-2) + ":" +
-                ("0" + d.getUTCSeconds()).slice(-2)
-            }
-        },
-        "data": dataPoints
-    }
-    Object.assign(opt, chartOptions)*/
     if (!canvasOptions.axisX) { canvasOptions.axisX = {} }
     if (!canvasOptions.axisY) { canvasOptions.axisY = {} }
     if (!canvasOptions.toolTip) { canvasOptions.toolTip = {} }
@@ -212,6 +198,16 @@ $(document).ready(function() {
 
         $.getJSON("/api.php", { "api": "manual_check", "command": cmd, "save": save, "id": id, "command_id": command_id}, function(data) {
             $(".manual-output").html(prettyPrint(JSON.parse(data.message)))
+        })
+    })
+    
+    $('.refresh-check').click(function() {
+        id = $(this).data("id");
+        target = $(this).data("target");
+        cmd = $(this).data("command");
+
+        $.getJSON("/api.php", { "api": "manual_check", "command": cmd, "save": true, "id": id, "command_id": target}, function(data) {
+            location.reload();
         })
     })
 

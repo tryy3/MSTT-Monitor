@@ -1,9 +1,10 @@
 <?php
+    include_once(__DIR__."/includes/db_connect.php");
+    include_once(__DIR__."/includes/function.php");
+    include_once(__DIR__."/includes/MSTT_Monitor/api/api.php");
+
     use MSTT_MONITOR\API as API;
 
-    include_once("includes/db_connect.php");
-    include_once("includes/function.php");
-    include_once("includes/api/api.php");
     header('Content-Type: application/json');
 
     $API = new API\API($monitorDB);
