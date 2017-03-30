@@ -6,7 +6,7 @@ layout: default
 
 > ```() = något värde (true|false|sträng...)```
 >
-> [] = friviligt
+> ```[] = friviligt```
 
 <dl>
     <dt>check_ram [-total] [-swap]</dt>
