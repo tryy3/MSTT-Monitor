@@ -4,9 +4,8 @@ layout: default
 
 # Commands
 
-> ```() = något värde (true|false|sträng...)```
->
-> ```[] = friviligt```
+* ```() = något värde (true|false|sträng...)```
+* ```[] = friviligt```
 
 <dl>
     <dt>check_ram [-total] [-swap]</dt>
