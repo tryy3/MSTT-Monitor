@@ -1,6 +1,5 @@
 ---
-layout: site
-title: MSTT-Monitor Documentation Commands
+layout: default
 ---
 
 # Commands
