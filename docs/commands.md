@@ -4,7 +4,7 @@ layout: default
 
 # Commands
 
-> () = något värde (true|false|sträng...)
+> ```() = något värde (true|false|sträng...)```
 >
 > [] = friviligt
 
