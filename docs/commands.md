@@ -90,6 +90,7 @@ layout: default
     </dd>
     <dt>netusage</dt>
     <dd>netusage skickar tillbaka klientens nätverks I/O</dd>
+    <br>
     <dt>ping [-ports=(port-range)] [-error]</dt>
     <dd>ping skickar ett ping meddelande till en eller flera portar för att kolla om dem är öppna, kan användas för att kolla om klienten är igång eller för att kolla vilka portar som används.<br>
     En port range kan ha flera syntax "3333" "22,3333" "22-80,3333".
@@ -113,6 +114,7 @@ layout: default
     </dd>
     <dt>info</dt>
     <dd>info skickar tillbaka ett svar med information om klienten så som hostname, OS, nätverks interfaces</dd>
+    <br>
     <dt>file -file=(file path)</dt>
     <dd>file kollar om filen existerar och om den gör det så får man tillbaka information om filen, storlek, senast modifierar, perms.
         <table>
