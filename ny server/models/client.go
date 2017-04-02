@@ -5,24 +5,24 @@ import (
 )
 
 type Client struct {
-	*sync.RWMutex
-	ip     string
-	id     int
-	groups []*Group
-	checks []*Check
+	rw     *sync.RWMutex
+	IP     string   `db:"ip"`
+	ID     int      `db:"id, primarykey, autoincrement"`
+	Groups []*Group `db:"-"`
+	Checks []*Check `db:"-"`
 }
 
 func (c Client) GetIP() (ip string) {
-	c.RLock()
-	ip = c.ip
-	c.RUnlock()
+	c.rw.RLock()
+	ip = c.IP
+	c.rw.RUnlock()
 	return
 }
 
 func (c Client) GetID() (id int) {
-	c.RLock()
-	id = c.id
-	c.RUnlock()
+	c.rw.RLock()
+	id = c.ID
+	c.rw.RUnlock()
 	return
 }
 
@@ -30,16 +30,16 @@ func (c Client) GetGroup(i int) (group *Group) {
 	if i >= c.CountGroups() {
 		return
 	}
-	c.RLock()
-	group = c.groups[i]
-	c.RUnlock()
+	c.rw.RLock()
+	group = c.Groups[i]
+	c.rw.RUnlock()
 	return
 }
 
 func (c Client) GetGroups() (groups []*Group) {
-	c.RLock()
-	groups = c.groups
-	c.RUnlock()
+	c.rw.RLock()
+	groups = c.Groups
+	c.rw.RUnlock()
 	return
 }
 
@@ -80,16 +80,16 @@ func (c Client) GetCheck(i int) (check *Check) {
 	if i >= c.CountChecks() {
 		return
 	}
-	c.RLock()
-	check = c.checks[i]
-	c.RUnlock()
+	c.rw.RLock()
+	check = c.Checks[i]
+	c.rw.RUnlock()
 	return
 }
 
 func (c Client) GetChecks() (checks []*Check) {
-	c.RLock()
-	checks = c.checks
-	c.RUnlock()
+	c.rw.RLock()
+	checks = c.Checks
+	c.rw.RUnlock()
 	return
 }
 
@@ -112,11 +112,11 @@ func (c Client) GetChecksReady() (check []*Check) {
 func (c Client) IterGroups() <-chan *Group {
 	ch := make(chan *Group, c.CountGroups())
 	go func() {
-		c.RLock()
-		for _, group := range c.groups {
+		c.rw.RLock()
+		for _, group := range c.Groups {
 			ch <- group
 		}
-		c.RUnlock()
+		c.rw.RUnlock()
 		close(ch)
 	}()
 	return ch
@@ -125,40 +125,40 @@ func (c Client) IterGroups() <-chan *Group {
 func (c Client) IterChecks() <-chan *Check {
 	ch := make(chan *Check, c.CountChecks())
 	go func() {
-		c.RLock()
-		for _, check := range c.checks {
+		c.rw.RLock()
+		for _, check := range c.Checks {
 			ch <- check
 		}
-		c.RUnlock()
+		c.rw.RUnlock()
 		close(ch)
 	}()
 	return ch
 }
 
 func (c Client) CountGroups() (count int) {
-	c.RLock()
-	count = len(c.groups)
-	c.RUnlock()
+	c.rw.RLock()
+	count = len(c.Groups)
+	c.rw.RUnlock()
 	return
 }
 
 func (c Client) CountChecks() (count int) {
-	c.RLock()
-	count = len(c.checks)
-	c.RUnlock()
+	c.rw.RLock()
+	count = len(c.Checks)
+	c.rw.RUnlock()
 	return
 }
 
 func (c *Client) AddGroup(group *Group) {
-	c.Lock()
-	c.groups = append(c.groups, group)
-	c.Unlock()
+	c.rw.Lock()
+	c.Groups = append(c.Groups, group)
+	c.rw.Unlock()
 }
 
 func (c *Client) AddCheck(check *Check) {
-	c.Lock()
-	c.checks = append(c.checks, check)
-	c.Unlock()
+	c.rw.Lock()
+	c.Checks = append(c.Checks, check)
+	c.rw.Unlock()
 }
 
 func (c *Client) RemoveGroup(i int) (ok bool) {
@@ -166,58 +166,58 @@ func (c *Client) RemoveGroup(i int) (ok bool) {
 	if i >= c.CountGroups() || i < 0 {
 		return
 	}
-	c.Lock()
-	c.groups = append(c.groups[:i], c.groups[i+1:]...)
+	c.rw.Lock()
+	c.Groups = append(c.Groups[:i], c.Groups[i+1:]...)
 	ok = true
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 
 func (c *Client) RemoveGroupByID(id int) (ok bool) {
 	ok = false
-	c.Lock()
+	c.rw.Lock()
 	for i := c.CountGroups() - 1; i >= 0; i-- {
 		g := c.GetGroup(i)
 		if g != nil && g.GetID() == id {
-			c.groups = append(c.groups[:i], c.groups[i+1:]...)
+			c.Groups = append(c.Groups[:i], c.Groups[i+1:]...)
 			ok = true
 			break
 		}
 	}
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 
 func (c *Client) RemoveGroupsByName(name string) (ok bool) {
 	ok = false
-	c.Lock()
+	c.rw.Lock()
 	for i := c.CountGroups() - 1; i >= 0; i-- {
 		g := c.GetGroup(i)
 		if g != nil && g.GetName() == name {
-			c.groups = append(c.groups[:i], c.groups[i+1:]...)
+			c.Groups = append(c.Groups[:i], c.Groups[i+1:]...)
 			ok = true
 		}
 	}
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 
 func (c *Client) RemoveGroupsByCommand(commandID int) (ok bool) {
 	ok = false
-	c.Lock()
+	c.rw.Lock()
 	for i := c.CountGroups() - 1; i >= 0; i-- {
 		g := c.GetGroup(i)
 		if g != nil {
 			for cmd := range g.Iter() {
 				if cmd.GetID() == commandID {
-					c.groups = append(c.groups[:i], c.groups[i+1:]...)
+					c.Groups = append(c.Groups[:i], c.Groups[i+1:]...)
 					ok = true
 					break
 				}
 			}
 		}
 	}
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 
@@ -226,25 +226,25 @@ func (c *Client) RemoveCheck(i int) (ok bool) {
 	if i >= c.CountChecks() || i < 0 {
 		return
 	}
-	c.Lock()
-	c.checks = append(c.checks[:i], c.checks[i+1:]...)
+	c.rw.Lock()
+	c.Checks = append(c.Checks[:i], c.Checks[i+1:]...)
 	ok = true
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 
 func (c *Client) RemoveCheckByID(id int) (ok bool) {
 	ok = false
-	c.Lock()
+	c.rw.Lock()
 	for i := c.CountChecks() - 1; i >= 0; i-- {
 		g := c.GetCheck(i)
 		if g != nil && g.GetID() == id {
-			c.checks = append(c.checks[:i], c.checks[i+1:]...)
+			c.Checks = append(c.Checks[:i], c.Checks[i+1:]...)
 			ok = true
 			break
 		}
 	}
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 

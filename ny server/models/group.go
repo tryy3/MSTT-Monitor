@@ -7,41 +7,41 @@ import (
 // NewGroup skapar en ny Grupp
 func NewGroup(name string, id int) *Group {
 	return &Group{
-		name:     name,
-		id:       id,
-		commands: []*Command{},
+		Name:     name,
+		ID:       id,
+		Commands: []*Command{},
 	}
 }
 
 // Command är en struktur för en grupp
 type Group struct {
-	*sync.RWMutex
-	name     string
-	id       int
-	commands []*Command
+	rw       *sync.RWMutex
+	Name     string     `db:"name"`
+	ID       int        `db:"id, primarykey, autoincrement"`
+	Commands []*Command `db:"-"`
 }
 
 // GetName hämtar namnet på gruppen på ett säkert sätt
 func (g Group) GetName() (name string) {
-	g.RLock()
-	name = g.name
-	g.RUnlock()
+	g.rw.RLock()
+	name = g.Name
+	g.rw.RUnlock()
 	return
 }
 
 // GetID hämtar idn på gruppen på ett säkert sätt
 func (g Group) GetID() (id int) {
-	g.RLock()
-	id = g.id
-	g.RUnlock()
+	g.rw.RLock()
+	id = g.ID
+	g.rw.RUnlock()
 	return
 }
 
 // GetCommands hämtar alla commands i gruppen
 func (g Group) GetCommands() (cmds []*Command) {
-	g.RLock()
-	cmds = g.commands
-	g.RUnlock()
+	g.rw.RLock()
+	cmds = g.Commands
+	g.rw.RUnlock()
 	return
 }
 
@@ -50,9 +50,9 @@ func (g Group) GetCommand(i int) (cmd *Command) {
 	if i >= g.Count() {
 		return
 	}
-	g.RLock()
-	cmd = g.commands[i]
-	g.RUnlock()
+	g.rw.RLock()
+	cmd = g.Commands[i]
+	g.rw.RUnlock()
 	return
 }
 
@@ -78,25 +78,25 @@ func (g Group) HasCommand(id int) (ok bool) {
 
 // Length hämtar antal kommandon som tillhör denna grupp
 func (g Group) Count() (count int) {
-	g.RLock()
-	count = len(g.commands)
-	g.RUnlock()
+	g.rw.RLock()
+	count = len(g.Commands)
+	g.rw.RUnlock()
 	return
 }
 
 // SetName sätter ett nytt värde för namnet på gruppen
 func (g *Group) SetName(name string) {
-	g.Lock()
-	g.name = name
-	g.Unlock()
+	g.rw.Lock()
+	g.Name = name
+	g.rw.Unlock()
 	return
 }
 
 // Add lägger till ett nytt kommand för gruppen
 func (g *Group) Add(cmd *Command) {
-	g.Lock()
-	g.commands = append(g.commands, cmd)
-	g.Unlock()
+	g.rw.Lock()
+	g.Commands = append(g.Commands, cmd)
+	g.rw.Unlock()
 	return
 }
 
@@ -106,37 +106,37 @@ func (g *Group) Remove(i int) (ok bool) {
 	if i >= g.Count() || i < 0 {
 		return
 	}
-	g.Lock()
-	g.commands = append(g.commands[:i], g.commands[i+1:]...)
+	g.rw.Lock()
+	g.Commands = append(g.Commands[:i], g.Commands[i+1:]...)
 	ok = true
-	g.Unlock()
+	g.rw.Unlock()
 	return
 }
 
 // RemoveByID tar bort ett specifikt kommand med hjälp av commandID från gruppen
 func (g *Group) RemoveByID(id int) (ok bool) {
 	ok = false
-	g.Lock()
+	g.rw.Lock()
 	for i := g.Count() - 1; i >= 0; i-- {
 		c := g.GetCommand(i)
 		if c != nil && c.GetID() == id {
-			g.commands = append(g.commands[:i], g.commands[i+1:]...)
+			g.Commands = append(g.Commands[:i], g.Commands[i+1:]...)
 			ok = true
 			break
 		}
 	}
-	g.Unlock()
+	g.rw.Unlock()
 	return
 }
 
 func (g Group) Iter() <-chan *Command {
 	ch := make(chan *Command, g.Count())
 	go func() {
-		g.RLock()
-		for _, cmd := range g.commands {
+		g.rw.RLock()
+		for _, cmd := range g.Commands {
 			ch <- cmd
 		}
-		g.RUnlock()
+		g.rw.RUnlock()
 		close(ch)
 	}()
 	return ch

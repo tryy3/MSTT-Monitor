@@ -5,24 +5,24 @@ import (
 )
 
 type Clients struct {
-	*sync.RWMutex
-	clients []*Client
+	rw      *sync.RWMutex
+	Clients []*Client
 }
 
 func (c Clients) GetClient(i int) (cl *Client) {
 	if i >= c.Count() {
 		return
 	}
-	c.RLock()
-	cl = c.clients[i]
-	c.RUnlock()
+	c.rw.RLock()
+	cl = c.Clients[i]
+	c.rw.RUnlock()
 	return
 }
 
 func (c Clients) GetClients() (cls []*Client) {
-	c.RLock()
-	cls = c.clients
-	c.RUnlock()
+	c.rw.RLock()
+	cls = c.Clients
+	c.rw.RUnlock()
 	return
 }
 
@@ -37,9 +37,9 @@ func (c Clients) GetClientByID(id int) (cl *Client) {
 }
 
 func (c *Clients) Add(client *Client) {
-	c.Lock()
-	c.clients = append(c.clients, client)
-	c.Unlock()
+	c.rw.Lock()
+	c.Clients = append(c.Clients, client)
+	c.rw.Unlock()
 }
 
 func (c *Clients) Remove(i int) (ok bool) {
@@ -47,44 +47,44 @@ func (c *Clients) Remove(i int) (ok bool) {
 	if i >= c.Count() || i < 0 {
 		return
 	}
-	c.Lock()
-	c.clients = append(c.clients[:i], c.clients[i+1:]...)
+	c.rw.Lock()
+	c.Clients = append(c.Clients[:i], c.Clients[i+1:]...)
 	ok = true
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 
 func (c *Clients) RemoveByID(id int) (ok bool) {
 	ok = false
-	c.Lock()
+	c.rw.Lock()
 	for i := c.Count() - 1; i >= 0; i-- {
 		cl := c.GetClient(i)
 		if cl != nil && cl.GetID() == id {
-			c.clients = append(c.clients[:i], c.clients[i+1:]...)
+			c.Clients = append(c.Clients[:i], c.Clients[i+1:]...)
 			ok = true
 			break
 		}
 	}
-	c.Unlock()
+	c.rw.Unlock()
 	return
 }
 
 func (c Clients) Iter() <-chan *Client {
 	ch := make(chan *Client, c.Count())
 	go func() {
-		c.RLock()
-		for _, cl := range c.clients {
+		c.rw.RLock()
+		for _, cl := range c.Clients {
 			ch <- cl
 		}
-		c.RUnlock()
+		c.rw.RUnlock()
 		close(ch)
 	}()
 	return ch
 }
 
 func (c Clients) Count() (count int) {
-	c.RLock()
-	count = len(c.clients)
-	c.RUnlock()
+	c.rw.RLock()
+	count = len(c.Clients)
+	c.rw.RUnlock()
 	return
 }
