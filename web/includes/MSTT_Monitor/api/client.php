@@ -133,7 +133,7 @@
             }
 
             $error->setBaseURL("/update/group");
-            $error->setForm(array( "type" => "insert", "clientid" => intval($id), "name" => $group ));
+            $error->setForm(array( "type" => "insert", "id" => intval($id), "group_name" => $group ));
 
             $error->setError(false);
             $error->setMessage("Updated the clients group successfully.");
@@ -176,7 +176,7 @@
             }
 
             $error->setBaseURL("/update/group");
-            $error->setForm(array( "type" => "delete", "clientid" => intval($id), "name" => $group ));
+            $error->setForm(array( "type" => "delete", "client_id" => intval($id), "group_name" => $group ));
 
             $error->setError(false);
             $error->setMessage("Updated the clients group successfully.");

@@ -1,136 +1,86 @@
 package server
 
 import (
-	"errors"
-	"net"
 	"syscall"
-
-	"database/sql"
 
 	"time"
 
-	"fmt"
-
 	"github.com/bobziuchkovski/cue"
 	"github.com/bobziuchkovski/cue/collector"
-	_ "github.com/go-sql-driver/mysql"
 )
 
-var (
-	db                  *sql.DB
-	timestampStmt       *sql.Stmt
-	insertCheckStmt     *sql.Stmt
-	updatePastCheckStmt *sql.Stmt
+type Server struct {
+	clients *Clients
 
-	config *Config
+	config   *Config
+	database *Database
 
-	clients *Clients // En lista av alla klienter
-)
-
-var log = cue.NewLogger("server")
-
-// SendMessage skickar ett TCP meddelande
-func SendMessage(connIP, connPort, connType, message string) (string, error) {
-	// Starta en kontakt med en TCP server
-	conn, err := net.Dial(connType, connIP+":"+connPort)
-	if err != nil {
-		log.Error(err, "Failed to connect to server")
-		return "", errors.New("Failed to connect to server")
-	}
-	defer conn.Close()
-
-	// Skicka meddelandet
-	if _, err = conn.Write([]byte(message)); err != nil {
-		log.Error(err, "Failed to write to server")
-		return "", errors.New("Failed to write to server")
-	}
-
-	// Läs responsen
-	reply := make([]byte, 1024)
-	n, err := conn.Read(reply)
-	if err != nil {
-		log.Error(err, "Failed to read from server")
-		return "", errors.New("Failed to read from server")
-	}
-
-	return string(reply[:n]), nil
+	log cue.Logger
 }
 
-// Start är huvudfunktionen för servern,
-// den startar alla processer så som mysql connection,
-// bygger ihop alla klienter, startar loopen för att kolla checks
-func Start() {
-	log := cue.NewLogger("server")
-	cue.CollectAsync(cue.DEBUG, 10000, collector.Terminal{}.New())
-	cue.CollectAsync(cue.DEBUG, 10000, collector.File{
+func (s *Server) Start(level cue.Level) {
+	s.log = cue.NewLogger("server")
+	cue.CollectAsync(level, 10000, collector.Terminal{}.New())
+	cue.CollectAsync(level, 10000, collector.File{
 		Path:         "server.log",
 		ReopenSignal: syscall.SIGHUP, // Om jag vill rotera logs i framtiden så kan man bara skicka en SIGHUP.
 	}.New())
 
-	config = &Config{}
-	config.Load()
+	s.log.Info("Starting MSTT-Monitor server")
 
-	clients = &Clients{}
-
-	log.Info("Starting the MSTT-Monitor server")
-
-	log.Info("Starting Web API server")
-	go StartWebServer()
-
-	// Starta en mysql connection
-	log.Info("Starting mysql connection")
-	var err error
-	db, err = sql.Open(config.SQLProtocol, fmt.Sprintf("%s:%s@(%s:%s)/%s", config.SQLUser, config.SQLPassword, config.SQLIP, config.SQLPort, config.SQLDatabase))
+	s.log.Info("Reading config")
+	config, err := NewConfig("config.json")
 	if err != nil {
-		log.Panic(err, "Error opening database connection")
+		s.log.Panic(err, "Something went wrong when loading config")
+		return
 	}
-	defer db.Close()
-	log.Info("Mysql connection established.")
+	s.config = config
 
-	// TODO: Bättre error handling
-	// Skapa alla prepare statements
-	log.Info("Skapar mysql prepare statements")
+	// TODO Start Web server
 
-	timestampStmt, err = db.Prepare("SELECT timestamp FROM checks WHERE id = ?")
+	s.log.Info("Connecting to SQL database")
+	s.database, err = NewDatabase(s.config.SQLUser, s.config.SQLPassword, s.config.SQLIP, s.config.SQLPort, s.config.SQLDatabase)
 	if err != nil {
-		log.Panic(err, "Error creating the timestamp prepare statement")
-	}
-	defer timestampStmt.Close()
-
-	insertCheckStmt, err = db.Prepare("INSERT INTO checks (command_id, client_id, response, error, finished) VALUES (?, ?, ?, ?, ?)")
-	if err != nil {
-		log.Panic(err, "Error creating the insert Check prepare statement")
-	}
-	defer insertCheckStmt.Close()
-
-	updatePastCheckStmt, err = db.Prepare("UPDATE checks SET checked=? WHERE id = ?")
-	if err != nil {
-		log.Panic(err, "Error creating the Update Past Check prepare statement")
-	}
-	defer updatePastCheckStmt.Close()
-
-	err = db.Ping()
-	if err != nil {
-		log.Panic(err, "Error pinging the database")
+		s.database.Close()
+		s.log.Panic(err, "Something went wrong when loading config")
+		return
 	}
 
-	// Bygg ihop klient listan
-	log.Info("Building the clients from latest checks")
-	go BuildAllClients()
+	s.log.Info("Creating all clients")
+	clients, err := NewClients(s.database)
+	if err != nil {
+		s.database.Close()
+		s.log.Panic(err, "Something went wrong when creating all the clients")
+		return
+	}
+	s.clients = clients
+	s.log.Info("Finished creating all clients")
 
+	s.log.Info("Starting loop")
 	for {
-		// Kolla om man fortfarande har kontakt med databasen
-		err = db.Ping()
-
-		// TODO: Försök reconnect?
-		if err != nil {
-			log.Panic(err, "Error pinging the database")
-		}
-
-		// Kolla om det finns någon klient som måste kollas
-		CheckClients()
-
-		// Vänta en sekund innan den börjar om
-		time.Sleep(time.Duration(config.Interval) * time.Second)
+		go s.Loop()
+		time.Sleep(time.Second * time.Duration(s.config.Interval))
 	}
+}
+
+func (s *Server) Loop() {
+	for cl := range s.clients.IterClients() {
+		go cl.Check(s)
+	}
+}
+
+func (s Server) GetLogger() cue.Logger {
+	return s.log
+}
+
+func (s Server) GetDatabase() *Database {
+	return s.database
+}
+
+func (s Server) GetConfig() *Config {
+	return s.config
+}
+
+func (s Server) GetClients() *Clients {
+	return s.clients
 }

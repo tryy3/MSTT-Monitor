@@ -1,0 +1,9 @@
+{
+    "APIAdress": ":8080",
+    "SQLUser": "root",
+    "SQLPassword": "977a610653",
+    "SQLIP": "192.168.20.143",
+    "SQLPort": "3306",
+    "SQLDatabase": "mstt-monitor",
+    "Interval": 1
+}

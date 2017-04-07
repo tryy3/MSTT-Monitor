@@ -78,7 +78,7 @@
             }
 
             $error->setBaseURL("/update/group");
-            $error->setForm(array("type"=>"update","name"=>$id));
+            $error->setForm(array("type"=>"update","group_id"=>intval($id)));
 
             $error->setError(false);
             $error->setMessage("Successfully edited the command.");
@@ -110,7 +110,7 @@
             }
 
             $error->setBaseURL("/update/group");
-            $error->setForm(array("type"=>"update","name"=>$id));
+            $error->setForm(array("type"=>"update","group_id"=>intval($id)));
 
             $error->setError(false);
             $error->setMessage("Successfully edited the command.");
@@ -133,7 +133,7 @@
             }
 
             $errors->setBaseURL("/update/command");
-            $errors->setForm(array("type"=>"delete", "id"=>intval($command["command_id"]), "group"=>$group));
+            $errors->setForm(array("type"=>"delete", "command_id"=>intval($command["command_id"]), "group_name"=>$group));
 
             $errors->setError(false);
             $errors->setMessage("Successfully removed the command from the group.");
@@ -167,7 +167,7 @@
             $insertCommandStmt->execute(array($commandID, $groupName, -1, 0));
 
             $errors->setBaseURL("/update/command");
-            $errors->setForm(array("type"=>"insert", "id"=>intval($commandID), "group"=>$groupName));
+            $errors->setForm(array("type"=>"insert", "command_id"=>intval($commandID), "group_name"=>$groupName));
 
             $errors->setError(false);
             $errors->setMessage(array($this->db->lastInsertId(), $cmd, -1, 0));

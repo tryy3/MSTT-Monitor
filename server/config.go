@@ -1,109 +1,67 @@
 package server
 
 import (
-	"errors"
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"os"
-	"reflect"
-
-	"github.com/hjson/hjson-go"
 )
 
 type Config struct {
+	// Adress that the webserver will run under
 	APIAdress string
 
-	SQLProtocol string
+	// SQL Information
+	// Default SQLProtocol is mysql
 	SQLUser     string
 	SQLPassword string
 	SQLIP       string
 	SQLPort     string
 	SQLDatabase string
 
-	Interval float64 // Tydligen kräver hjson att nummer alltid är float64.
+	// How often the server will check clients, in seconds
+	Interval int
 }
 
-func (c *Config) create(file string) error {
-	f, err := os.Create(file)
+func DefaultConfig() *Config {
+	return &Config{
+		APIAdress:   "127.0.0.1",
+		SQLUser:     "root",
+		SQLPassword: "",
+		SQLIP:       "127.0.0.1",
+		SQLPort:     "3306",
+		SQLDatabase: "MSTT-Monitor",
+		Interval:    1,
+	}
+}
+
+func NewConfig(file string) (*Config, error) {
+	f, err := os.Open(file)
+	conf := DefaultConfig()
+	if err != nil {
+		_, err = os.Create(file)
+		if err != nil {
+			return nil, err
+		}
+		err = SaveFile(file, conf)
+		return conf, err
+	}
+	err = ReadFile(f, &conf)
+	return conf, err
+}
+
+func ReadFile(file *os.File, v interface{}) error {
+	s, err := ioutil.ReadAll(file)
 	if err != nil {
 		return err
 	}
-	f.Write([]byte(`{
-	// Adress that the webserver will run under
-	APIAdress: ":8080"
-
-	// SQL Information
-	// Default SQLProtocol is mysql
-	SQLProtocol: "mysql"
-	SQLUser: "example"
-	SQLPassword: ""
-	SQLIP: "localhost"
-	SQLPort: "3306"
-	SQLDatabase: "example-database"
-
- 	// How often the server will check clients, in seconds
-	Interval: 1
-}`))
-	f.Close()
-	return nil
+	return json.Unmarshal(s, &v)
 }
 
-func (c *Config) setField(name string, value interface{}) error {
-	structValue := reflect.ValueOf(c).Elem()
-	structFieldValue := structValue.FieldByName(name)
-
-	if !structFieldValue.IsValid() {
-		return fmt.Errorf("No such field: %s in config", name)
+func SaveFile(file string, v interface{}) error {
+	b, err := json.MarshalIndent(v, "", "    ")
+	if err != nil {
+		return err
 	}
-
-	if !structFieldValue.CanSet() {
-		return fmt.Errorf("canno set %s field value", name)
-	}
-
-	structFieldType := structFieldValue.Type()
-	val := reflect.ValueOf(value)
-	if structFieldType != val.Type() {
-		return errors.New("Provided value type didn't match obj field type")
-	}
-
-	structFieldValue.Set(val)
+	ioutil.WriteFile(file, b, 0777)
 	return nil
-}
-
-func (c *Config) fillFields(m map[string]interface{}) error {
-	for k, v := range m {
-		err := c.setField(k, v)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (c *Config) Load() {
-	f := "config.hjson"
-
-	b, err := ioutil.ReadFile(f)
-	if err != nil {
-		err = c.create(f)
-		if err != nil {
-			log.Panic(err, "Can't create config")
-		}
-
-		b, err = ioutil.ReadFile(f)
-		if err != nil {
-			log.Panic(err, "Can't open config")
-		}
-	}
-
-	var m map[string]interface{}
-	err = hjson.Unmarshal(b, &m)
-	if err != nil {
-		log.Panic(err, "Can't parse config")
-	}
-
-	err = c.fillFields(m)
-	if err != nil {
-		log.Panic(err, "Can't parse config map")
-	}
 }
