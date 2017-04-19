@@ -1,26 +1,4 @@
 <?php
-function active($page, $pagename){
-	if($page == $pagename){
-		$result = 'class="active"';
-	}
-	else {
-		$result = "";
-	}
-	return $result;
-}
-
-function aktiv($page, $pagename){
-	
-	if($page == $pagename){
-		
-		$result = 'active';
-	}
-	else {
-		$result = "";
-	}
-	return $result;
-}
-
 function getLatestVersion($db, $name) {
 	$stmt = $db->prepare('SELECT version FROM uploads WHERE name=? ORDER BY version DESC');
 	$stmt->execute(array($name));

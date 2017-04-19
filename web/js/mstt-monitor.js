@@ -32,7 +32,7 @@ function dropGroup($elem) {
             var group = $(this).data("check");
             var table = $(this).find("table");
 
-            $.getJSON('/api.php', { "api": "add_command_group", "group": group, "command": command }, function(data) {
+            $.getJSON('api.php', { "api": "add_command_group", "group": group, "command": command }, function(data) {
                 if (!data.error) {
                     $tr = $("<tr>");
                     $tr.append($("<td>").text(data.message[0]))
@@ -171,6 +171,13 @@ $(document).ready(function() {
         offText: "Output Only",
     })
 
+    $('.interval-picker').timepicker({
+        maxHours: -1,
+        showMeridian: false,
+        showSeconds: true,
+        defaultTime: "0:00:00"
+    });
+
     $("input[name='Manual-Switch']").on("switchChange.bootstrapSwitch", function(data, state) {
         if (state) {
             $(".manual-dropdown").attr("disabled", true);
@@ -196,7 +203,7 @@ $(document).ready(function() {
 
         save = $("input[name='Save-Mysql']").bootstrapSwitch('state')
 
-        $.getJSON("/api.php", { "api": "manual_check", "command": cmd, "save": save, "id": id, "command_id": command_id}, function(data) {
+        $.getJSON("api.php", { "api": "manual_check", "command": cmd, "save": save, "id": id, "command_id": command_id}, function(data) {
             $(".manual-output").html(prettyPrint(JSON.parse(data.message)))
         })
     })
@@ -206,7 +213,7 @@ $(document).ready(function() {
         target = $(this).data("target");
         cmd = $(this).data("command");
 
-        $.getJSON("/api.php", { "api": "manual_check", "command": cmd, "save": true, "id": id, "command_id": target}, function(data) {
+        $.getJSON("api.php", { "api": "manual_check", "command": cmd, "save": true, "id": id, "command_id": target}, function(data) {
             location.reload();
         })
     })
@@ -261,7 +268,7 @@ $(document).ready(function() {
             var id = $(drag.children()[0]).text();
             var group = $(drag).closest(".panel").data("check")
 
-            $.getJSON("/api.php", { "api": "remove_command_group", "id": id, "group": group }, function(data) {
+            $.getJSON("api.php", { "api": "remove_command_group", "id": id, "group": group }, function(data) {
                 if (!data.error) {
                     drag.remove();
                     alert("success", "Success! ", data.message);
@@ -280,7 +287,7 @@ $(document).ready(function() {
             var $this = $(this)
             var type = $this.data("type")
 
-            $.getJSON("/api.php", { "api": "edit_client_group", "type": type, "id": id, "group": group }, function(data) {
+            $.getJSON("api.php", { "api": "edit_client_group", "type": type, "id": id, "group": group }, function(data) {
                 if (!data.error) {
                     switch(type.toLowerCase()) {
                         case "remove":
@@ -302,7 +309,7 @@ $(document).ready(function() {
 
     $(".delete-client").click(function() {
         var id = $(this).data("id")
-        $.getJSON('/api.php', { "api": "delete_client", "id": id }, function(data) {
+        $.getJSON('api.php', { "api": "delete_client", "id": id }, function(data) {
             if (!data.error) {
                 window.location = "?page=clients"
             } else {
@@ -313,7 +320,7 @@ $(document).ready(function() {
 
     $(".add-group").click(function() {
         var group = $(".group-name").val()
-        $.getJSON('/api.php', { "api": "group_exists", "group": group }, function(data) {
+        $.getJSON('api.php', { "api": "group_exists", "group": group }, function(data) {
             if (!data.error) {
                 if (!data.message) {
                     $panel = $("<div>").addClass("panel panel-primary checks-item drop-group").attr("data-check", group)
@@ -343,7 +350,7 @@ $(document).ready(function() {
     })
 
     $('.add-command').click(function() {
-        $.getJSON('/api.php', { "api": "create_command" }, function(data) {
+        $.getJSON('api.php', { "api": "create_command" }, function(data) {
             if (!data.error) {
                 $tr = $("<tr>");
                 $tr.append($("<td>").text(data.message));
@@ -373,8 +380,7 @@ $(document).ready(function() {
 
     $(document).on("click", ".delete-group", function() {
         group = $(this).closest(".checks").data("target")
-        $.getJSON('/api.php', { "api": "delete_group", "group": group }, function(data) {
-            console.log(data)
+        $.getJSON('api.php', { "api": "delete_group", "group": group }, function(data) {
             if (!data.error) {
                 console.log($(".checks[data-target='"+group+"']"))
                 $(".checks[data-target='"+group+"']").remove()
@@ -391,9 +397,8 @@ $(document).ready(function() {
         var parent = $(this).parent().parent()
         var id = $(this).data("id");
         var group = $(this).closest(".panel").data("check")
-        console.log(group);
 
-        $.getJSON('/api.php', { "api": "remove_command_group", "id": id, "group": group }, function(data) {
+        $.getJSON('api.php', { "api": "remove_command_group", "id": id, "group": group }, function(data) {
             if (!data.error) {
                 alert("success", "Success! ", data.message);
                 parent.remove();
@@ -408,7 +413,7 @@ $(document).ready(function() {
         var parent = $(this).parent().parent();
         var name = $(parent.children()[1]).text();
 
-        $.getJSON('/api.php', { "api": "delete_command", "id": id }, function(data) {
+        $.getJSON('api.php', { "api": "delete_command", "id": id }, function(data) {
             if (!data.error) {
                 alert("success", "Success! ", data.message);
                 parent.remove();
@@ -442,11 +447,66 @@ $(document).ready(function() {
             return;
         }
 
-        $.getJSON('/api.php', { "api": api, "id": id, "key": target, "value": opt.toLowerCase() }, function(data) {
+        $.getJSON('api.php', { "api": api, "id": id, "key": target, "value": opt.toLowerCase() }, function(data) {
             if (!data.error) {
                 alert("success", "Success! ", data.message);
             } else {
                 alert("danger", "Error! ", data.message);
+            }
+        })
+    })
+
+    $(document).on('changed.bs.select', '.selectpicker', function(e) {
+        var $this = $(this);
+        var id = $this.data("id");
+        var target = $this.data("target");
+        var f = $this.data("for");
+        var val = $this.val().join().toLowerCase();
+
+        var api = "";
+        
+        if (f == "alert") {
+            api = "edit_alert";
+        } else {
+            return;
+        }
+        $.getJSON('api.php', { "api": api, "id": id, "key": target, "value": val }, function(data) {
+            if (!data.error) {
+                alert("success", "Success! ", data.message);
+            } else {
+                alert("danger", "Error! ", data.message);
+            }
+        })
+    })
+
+    $(document).on('changeTime.timepicker', '.interval-picker', function(e) {
+        var val = e.time.value;
+        var valSplit = val.split(":")
+        var time = parseInt(valSplit[2])
+        time += parseInt(valSplit[1])*60
+        time += parseInt(valSplit[0])*60*60
+
+        var $this = $(this);
+        var id = $this.data("id");
+        var target = $this.data("target");
+        var previous = $this.data("previous");
+        var f = $this.data("for");
+        
+        var api = "";
+
+        if (f == "alert") {
+            api = "edit_alert";
+        } else {
+            return;
+        }
+
+        $.getJSON('api.php', { "api": api, "id": id, "key": target, "value": time }, function(data) {
+            if (!data.error) {
+                alert("success", "Success! ", data.message);
+                $this.data("previous", val)
+            } else {
+                alert("danger", "Error! ", data.message);
+                $this.timepicker('setTime', previous);
             }
         })
     })
@@ -470,11 +530,14 @@ $(document).ready(function() {
             api = "edit_client"
         } else if (f == "server") {
             api = "edit_server"
+        } else if (f == "alert") {
+            api = "edit_alert"
         } else {
             return;
         }
 
-        $.getJSON("/api.php", { "api": api, "id": id, "key": target, "value": $this.text() }, function(data) {
+        $.getJSON("api.php", { "api": api, "id": id, "key": target, "value": $this.text() }, function(data) {
+            console.log(data)
             if (!data.error) {
                 alert("success", "Success! ", data.message);
                 $this.data("previous", $this.text());
@@ -532,7 +595,7 @@ $(document).ready(function() {
             return
         }
 
-        $.getJSON("/api.php", { "api": "create_client", "ip": ip }, function(data) {
+        $.getJSON("api.php", { "api": "create_client", "ip": ip }, function(data) {
             if (!data.error) {
                 setTimeout(function() {
                     window.location = "?page=client&id="+data.message
@@ -547,7 +610,7 @@ $(document).ready(function() {
         var $this = $(this);
         var id = $this.data("id");
 
-        $.getJSON("/api.php", { "api": "del_server", "id": id }, function(data) {
+        $.getJSON("api.php", { "api": "del_server", "id": id }, function(data) {
             if(!data.error) {
                 $this.parent().parent().remove()
                 alert("success", "Success! ", data.message);
@@ -568,7 +631,7 @@ $(document).ready(function() {
             return
         }
 
-        $.getJSON("/api.php", { "api": "add_server", "ip": ip }, function(data) {
+        $.getJSON("api.php", { "api": "add_server", "ip": ip }, function(data) {
             if (!data.error) {
                 $span = $("<span>").text(ip).attr("contenteditable", true).data("id", data.message).data("for", "server").data("target", "ip").data("previous", ip)
                 $i = $("<i>").data("id", data.message).addClass("delete-server fa fa-close fa-close-red fa-lg pull-right")
@@ -582,5 +645,52 @@ $(document).ready(function() {
                 alert("danger", "Error! ", data.message);
             }
         })
+    })
+
+    $(document).on('click', '.add-alert', function() {
+        $this = $(this)
+        id = $this.data("id")
+        $.getJSON("api.php", { "api": "add_alert_option", "client_id": id}, function(data) {
+            if (!data.error) {
+                $div = $this.closest(".panel").find("table")
+                $div
+                    .append($("<tr>")
+                        .append($("<td>")
+                            .text(data.message))
+                        .append($("<td>")
+                            .attr("contenteditable", true)
+                            .data("id", id)
+                            .data("for", "alert")
+                            .data("target", "alert")
+                            .data("previous", ""))
+                        .append($("<td>")
+                            .attr("contenteditable", true)
+                            .data("id", id)
+                            .data("for", "alert")
+                            .data("target", "value")
+                            .data("previous", ""))
+                        .append($("<td>")
+                            .text(0)
+                            .attr("contenteditable", true)
+                            .data("id", id)
+                            .data("for", "alert")
+                            .data("target", "count")
+                            .data("previous", 0))
+                        .append($("<td>")
+                            .append($("<select>")
+                                .attr("multiple", true)
+                                .addClass("selectpicker")
+                                .data("width", "100%")
+                                .data("actions-box", true)
+                                .data("id", data.message)
+                                .data("target", "service")
+                                .data("for", "alert")
+                                    .append($("<option>").text("Email"))
+                                    .append($("<option>").text("SMS")))))
+                alert("success", "Success! ", "Successfully added a new alert option.");
+            } else {
+                alert("danger", "Error! ", data.message);
+            }
+        });
     })
 });

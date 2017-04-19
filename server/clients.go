@@ -97,15 +97,25 @@ func NewClients(db *Database) (*Clients, error) {
 	if err != nil {
 		return clients, err
 	}
+	alerts, err := db.GetAlertOptions()
+	if err != nil {
+		return clients, err
+	}
 
 	c := db.GetRealCommands(cmds)
 	g := db.GetRealGroups(groups, c)
 
-	stmt, err := db.Prepare("SELECT * FROM `checks` WHERE `client_id`=? AND `command_id`=? ORDER BY `timestamp` DESC")
+	checkStmt, err := db.Prepare("SELECT * FROM `checks` WHERE `client_id`=? AND `command_id`=? ORDER BY `timestamp` DESC")
 	if err != nil {
 		return clients, err
 	}
-	defer stmt.Close()
+	defer checkStmt.Close()
+
+	alertStmt, err := db.Prepare("SELECT * FROM `checks` WHERE `alert_id`=? AND `client_id`=? ORDER BY `timestamp` DESC")
+	if err != nil {
+		return clients, err
+	}
+	defer alertStmt.Close()
 
 	for _, client := range cls {
 		cl := NewClient(client)
@@ -115,7 +125,7 @@ func NewClients(db *Database) (*Clients, error) {
 				if gg.GetName() == group {
 					cl.AddGroup(gg)
 					for cmd := range gg.IterCommands() {
-						check, err := db.GetCheck(stmt, cl.GetID(), cmd.GetID())
+						check, err := db.GetCheck(checkStmt, cl.GetID(), cmd.GetID())
 						if err != nil {
 							return clients, err
 						}
@@ -126,6 +136,21 @@ func NewClients(db *Database) (*Clients, error) {
 							return clients, err
 						}
 						cl.AddCheck(ch)
+
+						for _, a := range alerts {
+							if a.ClientID == cl.GetID() && a.CommandID == cmd.GetID() {
+								alert, err := db.GetAlert(alertStmt, a.ID, cl.GetID())
+								if err != nil {
+									return clients, err
+								}
+								al := NewAlert(a)
+								err = al.SetTimestampFromString(alert.Timestamp)
+								if err != nil {
+									return clients, err
+								}
+								ch.AddAlert(al)
+							}
+						}
 					}
 				}
 			}

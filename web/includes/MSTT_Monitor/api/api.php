@@ -7,18 +7,21 @@
     include_once(__DIR__."/command.php");
     include_once(__DIR__."/group.php");
     include_once(__DIR__."/server.php");
+    include_once(__DIR__."/alerts.php");
 
     class API {
         private $client;
         private $command;
         private $group;
         private $server;
+        private $alerts;
 
         public function __construct($db) {
             $this->client = new Client($db);
             $this->command = new Command($db);
             $this->group = new Group($db);
             $this->server = new Server($db);
+            $this->alerts = new Alerts($db);
         }
 
         public function Client() {
@@ -35,6 +38,10 @@
 
         public function Server() {
             return $this->server;
+        }
+
+        public function Alerts() {
+            return $this->alerts;
         }
     }
     

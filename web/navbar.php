@@ -1,4 +1,4 @@
-<nav class="navbar navbar-inverse navbar-default">
+<nav class="navbar navbar-inverse navbar-default" style="border-radius:0px;">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
@@ -28,7 +28,7 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Konto<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#">Länk 1</a></li>
+            <li><a href="../../">Intranätet</a></li>
             <li><a href="#">Länk 2</a></li>
             <li><a href="#">Länk 3</a></li>
             <li role="separator" class="divider"></li>

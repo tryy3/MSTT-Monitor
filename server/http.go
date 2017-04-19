@@ -49,8 +49,7 @@ type HTTPServer struct {
 	Server   *Server
 }
 
-func (h *HTTPServer) Start(Server *Server) {
-	h.Server = Server
+func (h *HTTPServer) Start() {
 	h.Handlers["command"] = CommandHandler{}
 	h.Handlers["client"] = ClientHandler{}
 	h.Handlers["group"] = GroupHandler{}

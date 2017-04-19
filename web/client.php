@@ -93,6 +93,15 @@
         }
     }
 
+    function isActive($key, $checks, $true = "selected", $false = "") {
+        foreach (explode(",", $checks) as $check) {
+            if ($key == $check) {
+                return $true;
+            }
+        }
+        return $false;
+    }
+
     $checks = array();
     try {
         $client = Utils\getClient($monitorDB, $_GET['id']);
@@ -286,6 +295,106 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Alerts</h3>
+                </div>
+                <table class="table table-hover table-bordered">
+                    <tr>
+                        <th>ID</th>
+                        <th>Alert ID</th>
+                        <th>Value</th>
+                        <th>Timestamp</th>
+                    </tr>
+                    <?php foreach ($client->getAlerts() as $alert) { ?>
+                        <tr>
+                            <td><?php echo $alert->getID() ?></td>
+                            <td><?php echo $alert->getAlertID() ?></td>
+                            <td><?php echo $alert->getValue() ?></td>
+                            <td><?php echo $alert->getDate() ?></td>
+                        </tr>
+                    <?php } ?>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Alert Options</h3>
+                    <button class="btn btn-success add-alert" data-id="<?php echo $client->getID() ?>">Add alert option</button>
+                </div>
+                <table class="table table-hover table-bordered">
+                    <tr>
+                        <th width="5%">ID</th>
+                        <th width="18%">Alert</th>
+                        <th width="20%">Value</th>
+                        <th width="7%">Count</th>
+                        <th width="25%">Delay</th>
+                        <th width="25%">Service</th>
+                    </tr>
+                    <?php foreach ($client->getAlertOptions() as $alertOption) { ?>
+                        <tr>
+                            <td><?php echo $alertOption->getID() ?></td>
+                            <td 
+                                contenteditable
+                                data-id="<?php echo $alertOption->getID() ?>"
+                                data-for="alert"
+                                data-target="alert"
+                                data-previous="<?php echo $alertOption->getAlert()?>">
+                                    <?php echo $alertOption->getAlert() ?>
+                            </td>
+                            <td 
+                                contenteditable
+                                data-id="<?php echo $alertOption->getID() ?>"
+                                data-for="alert"
+                                data-target="value"
+                                data-previous="<?php echo $alertOption->getValue()?>">
+                                    <?php echo $alertOption->getValue() ?>
+                            </td>
+                            <td 
+                                contenteditable
+                                data-id="<?php echo $alertOption->getID() ?>"
+                                data-for="alert"
+                                data-target="count"
+                                data-previous="<?php echo $alertOption->getCount()?>">
+                                    <?php echo $alertOption->getCount() ?>
+                            </td>
+                            <td>
+                                <div class="input-group bootstrap-timepicker timepicker">
+                                    <input 
+                                        type="text"
+                                        class="form-control input-small interval-picker"
+                                        data-default-time="<?php echo $alertOption->getDelayFormat() ?>"
+                                        data-id="<?php echo $alertOption->getID() ?>"
+                                        data-for="alert"
+                                        data-target="delay"
+                                        data-previous="<?php echo $alertOption->getDelayFormat() ?>">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                                </div>
+                            </td>
+                            <td>
+                                <select
+                                    multiple
+                                    class="selectpicker"
+                                    data-width="100%"
+                                    data-actions-box="true"
+                                    data-id="<?php echo $alertOption->getID() ?>"
+                                    data-target="service"
+                                    data-for="alert">
+                                    <option <?php echo isActive('email', $alertOption->getService()) ?>>Email</option>
+                                    <option <?php echo isActive('sms', $alertOption->getService()) ?>>SMS</option>
+                                </select>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
     <?php
         foreach($checks as $k => $c) {

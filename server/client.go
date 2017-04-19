@@ -31,28 +31,28 @@ type Client struct {
 	groupNames []string
 }
 
-func (c Client) GetIP() (ip string) {
+func (c Client) GetIP() string {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
 	return c.IP
 }
 
-func (c Client) GetID() (id int64) {
+func (c Client) GetID() int64 {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
 	return c.ID
 }
 
-func (c Client) GetGroup(i int) (group *Group) {
+func (c Client) GetGroup(i int) *Group {
 	if i >= c.CountGroups() {
-		return
+		return nil
 	}
 	c.rw.RLock()
 	defer c.rw.RUnlock()
 	return c.Groups[i]
 }
 
-func (c Client) GetGroups() (groups []*Group) {
+func (c Client) GetGroups() []*Group {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
 	return c.Groups
@@ -68,7 +68,6 @@ func (c Client) HasGroupByName(name string) bool {
 }
 
 func (c Client) GetGroupsByName(name string) (groups []*Group) {
-	groups = []*Group{}
 	for g := range c.IterGroups() {
 		if g.GetName() == name {
 			groups = append(groups, g)
@@ -78,7 +77,6 @@ func (c Client) GetGroupsByName(name string) (groups []*Group) {
 }
 
 func (c Client) GetGroupsByCommand(commandID int64) (groups []*Group) {
-	groups = []*Group{}
 	for g := range c.IterGroups() {
 		for cmd := range g.IterCommands() {
 			if cmd.GetID() == commandID {
@@ -156,13 +154,13 @@ func (c Client) IterChecks() <-chan *Check {
 	return ch
 }
 
-func (c Client) CountGroups() (count int) {
+func (c Client) CountGroups() int {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
 	return len(c.Groups)
 }
 
-func (c Client) CountChecks() (count int) {
+func (c Client) CountChecks() int {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
 	return len(c.Checks)
@@ -181,7 +179,7 @@ func (c *Client) AddCheck(check *Check) {
 	c.Checks = append(c.Checks, check)
 }
 
-func (c *Client) RemoveGroup(i int) (ok bool) {
+func (c *Client) RemoveGroup(i int) bool {
 	if i >= c.CountGroups() || i < 0 {
 		return false
 	}
@@ -192,10 +190,10 @@ func (c *Client) RemoveGroup(i int) (ok bool) {
 	for cmd := range group.IterCommands() {
 		c.RemoveCheckByGroupID(cmd.GetGroupID())
 	}
-	return
+	return true
 }
 
-func (c *Client) RemoveGroupsByName(name string) (ok bool) {
+func (c *Client) RemoveGroupsByName(name string) bool {
 	checks := []int64{}
 	c.rw.Lock()
 	for i := len(c.Groups) - 1; i >= 0; i-- {
@@ -217,7 +215,7 @@ func (c *Client) RemoveGroupsByName(name string) (ok bool) {
 	return false
 }
 
-func (c *Client) RemoveGroupsByCommand(commandID int64) (ok bool) {
+func (c *Client) RemoveGroupsByCommand(commandID int64) bool {
 	var check int64 = -1
 	c.rw.Lock()
 	for i := len(c.Groups) - 1; i >= 0; i-- {
@@ -238,7 +236,7 @@ func (c *Client) RemoveGroupsByCommand(commandID int64) (ok bool) {
 	return false
 }
 
-func (c *Client) RemoveCheck(i int) (ok bool) {
+func (c *Client) RemoveCheck(i int) bool {
 	if i >= c.CountChecks() || i < 0 {
 		return false
 	}
@@ -248,7 +246,7 @@ func (c *Client) RemoveCheck(i int) (ok bool) {
 	return true
 }
 
-func (c *Client) RemoveCheckByID(id int64) (ok bool) {
+func (c *Client) RemoveCheckByID(id int64) bool {
 	c.rw.Lock()
 	defer c.rw.Unlock()
 	for i := len(c.Checks) - 1; i >= 0; i-- {
@@ -261,8 +259,8 @@ func (c *Client) RemoveCheckByID(id int64) (ok bool) {
 	return false
 }
 
-func (c *Client) RemoveCheckByGroupID(id int64) (ok bool) {
-	ok = false
+func (c *Client) RemoveCheckByGroupID(id int64) bool {
+	ok := false
 	c.rw.Lock()
 	defer c.rw.Unlock()
 	for i := len(c.Checks) - 1; i >= 0; i-- {

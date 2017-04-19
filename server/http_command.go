@@ -68,7 +68,7 @@ func (CommandHandler) Insert(r *HTTPHandler) {
 			c.AddCheck(ch)
 		}
 	}
-	r.Output(APIResponse{Error: true, Message: "Added the new command to the group in cache"})
+	r.Output(APIResponse{Error: false, Message: "Added the new command to the group in cache"})
 }
 
 func (CommandHandler) Update(r *HTTPHandler) {
@@ -95,7 +95,7 @@ func (CommandHandler) Update(r *HTTPHandler) {
 		}
 	}
 
-	r.Output(APIResponse{Error: true, Message: "Successfully updated the command for all clients"})
+	r.Output(APIResponse{Error: false, Message: "Successfully updated the command for all clients"})
 }
 
 func (CommandHandler) Delete(r *HTTPHandler) {
@@ -115,5 +115,5 @@ func (CommandHandler) Delete(r *HTTPHandler) {
 			}
 		}
 	}
-	r.Output(APIResponse{Error: true, Message: "Successfully removed the command."})
+	r.Output(APIResponse{Error: false, Message: "Successfully removed the command."})
 }

@@ -43,6 +43,25 @@ type clientFields struct {
 	Name       string `db:"namn"`
 }
 
+type alertFields struct {
+	ID        int64  `db:"id"`
+	AlertID   int64  `db:"alert_id"`
+	ClientID  int64  `db:"client_id"`
+	Timestamp string `db:"timestmap"`
+	Value     string `db:"value"`
+}
+
+type alertOptionFields struct {
+	ID        int64  `db:"id"`
+	ClientID  int64  `db:"client_id"`
+	CommandID int64  `db:"command_id"`
+	Alert     string `db:"alert"`
+	Value     string `db:"value"`
+	Count     int64  `db:"count"`
+	Delay     int64  `db:"delay"`
+	Service   string `db:"service"`
+}
+
 func NewDatabase(user, password, ip, port, database string) (db *Database, err error) {
 	db = &Database{}
 	db.db, err = sqlx.Connect("mysql", fmt.Sprintf("%s:%s@(%s:%s)/%s", user, password, ip, port, database))
@@ -147,14 +166,37 @@ func (d Database) GetGroupByCommand(name string, id int64) (groupFields, error) 
 	return g, err
 }
 
-func (d Database) Prepare(query string) (*sqlx.Stmt, error) {
-	return d.db.Preparex(query)
-}
-
 func (d Database) GetCheck(stmt *sqlx.Stmt, i ...interface{}) (checkFields, error) {
 	c := checkFields{}
 	err := stmt.Get(&c, i...)
 	return c, err
+}
+
+func (d Database) GetAlertOptions() ([]alertOptionFields, error) {
+	alerts := []alertOptionFields{}
+	err := d.db.Select(&alerts, "SELECT * FROM `alert_options`")
+	return alerts, err
+}
+
+func (d Database) GetAlertOptionsByID(id int64) (alertOptionFields, error) {
+	alert := alertOptionFields{}
+	stmt, err := d.db.Preparex("SELECT * FROM `alert_options` WHERE `id`=?")
+	if err != nil {
+		return alert, err
+	}
+	defer stmt.Close()
+	err = stmt.Get(alert, id)
+	return alert, err
+}
+
+func (d Database) GetAlert(stmt *sqlx.Stmt, i ...interface{}) (alertFields, error) {
+	a := alertFields{}
+	err := stmt.Get(&a, i...)
+	return a, err
+}
+
+func (d Database) Prepare(query string) (*sqlx.Stmt, error) {
+	return d.db.Preparex(query)
 }
 
 func (d Database) UpdatePastCheck(id int64) error {
@@ -164,6 +206,31 @@ func (d Database) UpdatePastCheck(id int64) error {
 
 func (d Database) InsertCheck(i ...interface{}) (sql.Result, error) {
 	return d.insertCheckStmt.Exec(i...)
+}
+
+func (d Database) InsertAlert(i ...interface{}) (alertFields, error) {
+	var a alertFields
+	insertStmt, err := d.db.Preparex("INSERT INTO `alerts` (`alert_id`, `client_id`, `value`) VALUES (?,?,?)")
+	if err != nil {
+		return a, err
+	}
+	defer insertStmt.Close()
+	res, err := insertStmt.Exec(i...)
+	if err != nil {
+		return a, err
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return a, err
+	}
+
+	getStmt, err := d.db.Preparex("SELECT * FROM `alerts` WHERE `id`=?")
+	if err != nil {
+		return a, err
+	}
+	defer getStmt.Close()
+	return d.GetAlert(getStmt, id)
 }
 
 func (d Database) GetLastCheckTime(id int64) (string, error) {

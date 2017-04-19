@@ -22,6 +22,7 @@ type Check struct {
 	rw            *sync.RWMutex
 	Command       *Command
 	Group         *Group
+	Alerts        []*Alert
 	PastID        int64
 	NextTimestamp time.Time
 	Checked       bool
@@ -30,59 +31,59 @@ type Check struct {
 }
 
 // GetCommand
-func (c *Check) GetCommand() (cmd *Command) {
+func (c *Check) GetCommand() *Command {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	cmd = c.Command
-	return
+	return c.Command
 }
 
 // GetGroup
-func (c *Check) GetGroup() (g *Group) {
+func (c *Check) GetGroup() *Group {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	g = c.Group
-	return
+	return c.Group
+}
+
+// GetAlerts
+func (c *Check) GetAlerts() []*Alert {
+	c.rw.RLock()
+	defer c.rw.RUnlock()
+	return c.Alerts
 }
 
 // GetID
-func (c *Check) GetID() (id int64) {
+func (c *Check) GetID() int64 {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	id = c.PastID
-	return
+	return c.PastID
 }
 
 // GetTimestamp
-func (c *Check) GetTimestamp() (timestamp time.Time) {
+func (c *Check) GetTimestamp() time.Time {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	timestamp = c.NextTimestamp
-	return
+	return c.NextTimestamp
 }
 
 // GetChecked
-func (c *Check) GetChecked() (checked bool) {
+func (c *Check) GetChecked() bool {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	checked = c.Checked
-	return
+	return c.Checked
 }
 
 // GetError
-func (c *Check) GetError() (err bool) {
+func (c *Check) GetError() bool {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	err = c.Err
-	return
+	return c.Err
 }
 
 // GetFinished
-func (c *Check) GetFinished() (finished bool) {
+func (c *Check) GetFinished() bool {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	finished = c.Finished
-	return
+	return c.Finished
 }
 
 func (c *Check) SetGroup(g *Group) {
@@ -131,4 +132,29 @@ func (c *Check) SetFinished(finished bool) {
 	c.rw.Lock()
 	defer c.rw.Unlock()
 	c.Finished = finished
+}
+
+func (c *Check) AddAlert(alert *Alert) {
+	c.rw.Lock()
+	defer c.rw.Unlock()
+	c.Alerts = append(c.Alerts, alert)
+}
+
+func (c Check) CountAlerts() int {
+	c.rw.RLock()
+	defer c.rw.RUnlock()
+	return len(c.Alerts)
+}
+
+func (c Check) IterAlerts() <-chan *Alert {
+	ch := make(chan *Alert, c.CountAlerts())
+	go func() {
+		c.rw.RLock()
+		defer c.rw.RUnlock()
+		for _, alert := range c.Alerts {
+			ch <- alert
+		}
+		close(ch)
+	}()
+	return ch
 }

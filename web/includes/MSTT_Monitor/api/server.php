@@ -78,6 +78,7 @@
             curl_close($ch);
             $response = json_decode($resp, true);
             if ($response["error"]) {
+                error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch));
                 $error->setMessage("One or more servers failed, check logs.");
                 return "";
             }

@@ -43,7 +43,7 @@
             $groupStmt->execute(array($id));
 
             $error->setBaseURL("/update/command");
-            $error->setForm(array( "type" => "delete", "command_id" => intval($id) ));
+            $error->setForm(array( "type" => "update", "command_id" => intval($id) ));
 
             $error->setError(false);
             $error->setMessage("Removed the command, effected ".$groupStmt->rowCount()." groups");

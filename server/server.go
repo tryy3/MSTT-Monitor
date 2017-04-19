@@ -56,6 +56,11 @@ func (s *Server) Start(level cue.Level) {
 	s.clients = clients
 	s.log.Info("Finished creating all clients")
 
+	s.log.Info("Starting web API")
+	API := HTTPServer{Server: s, Handlers: map[string]APIHandler{}}
+	go API.Start()
+	s.log.Info("Web API started")
+
 	s.log.Info("Starting loop")
 	for {
 		go s.Loop()
