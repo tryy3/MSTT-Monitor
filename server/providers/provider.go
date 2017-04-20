@@ -1,5 +1,9 @@
 package providers
 
+import (
+	"sync"
+)
+
 type AlertProvider interface {
 	Check(string) bool
 	Value() string
@@ -7,8 +11,9 @@ type AlertProvider interface {
 	Name() string
 }
 
-func NewAlertProviderCPU(total int64, avg int64) AlertProvider {
+func NewAlertProviderCPU(total int64, avg float64) AlertProvider {
 	return &AlertProviderCPU{
+		rw:    new(sync.RWMutex),
 		Total: total,
 		Avg:   avg,
 	}

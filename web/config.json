@@ -11,6 +11,9 @@
             { "Amount": 2, "Color": "Red", "Symbol": "times-circle" }
         ]}
     ],
+    "AlertOptions": {
+        "cpu" : {"Value": "Procent", "Min": 0, "Max": 100 }
+    },
     "ClientTable": [
         { "Namn": "ID", "Key": "id" },
         { "Namn": "Namn", "Key": "namn", "Edit": true },

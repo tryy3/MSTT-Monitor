@@ -22,6 +22,10 @@ type ServiceSMS struct {
 	GW         *GatewayAPI
 }
 
+func (ServiceSMS) Name() string {
+	return "sms"
+}
+
 func (s ServiceSMS) Send(title string, msg string) {
 	m := Message{
 		Message:    msg,

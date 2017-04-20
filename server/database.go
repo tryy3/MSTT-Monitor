@@ -47,7 +47,7 @@ type alertFields struct {
 	ID        int64  `db:"id"`
 	AlertID   int64  `db:"alert_id"`
 	ClientID  int64  `db:"client_id"`
-	Timestamp string `db:"timestmap"`
+	Timestamp string `db:"timestamp"`
 	Value     string `db:"value"`
 }
 

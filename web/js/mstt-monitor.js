@@ -151,6 +151,44 @@ function prettyPrint(json) {
     });
 }
 
+function createDropdown(element, child, config) {
+    $element = $(element);
+
+    $(document).on('changed.bs.select', ".selectpicker" + element, function() {
+        $child = $(this).closest("tr").find(child)
+        $child.html()
+        if ($element.val() == "") return
+
+        var v = config[$element.val()];
+        switch (v.Value.toLowerCase()) {
+            case "procent":
+                $spin = $("<input>")
+                    .addClass("touchspin")
+                    .attr("type", "text")
+                    .val("0")
+                    .data("target", "value")
+                    .data("for", "alert")
+                    .data("id", $element.data("id"))
+                
+                $child.append($spin)
+
+                console.log($spin)
+                $spin.TouchSpin({
+                        min: v.Min,
+                        max: v.Max,
+                        step: 1,
+                        decimals: 2,
+                        boostat: 5,
+                        maxboostedstep: 10,
+                        postfix: '%'
+                    })
+                console.log($spin)
+                
+                break;
+        }
+    })
+}
+
 $(document).ready(function() {
     dragg($('.drag'));
     dropGroup($('.drop-group'));
@@ -456,12 +494,40 @@ $(document).ready(function() {
         })
     })
 
+    $(document).on('click', ".delete-btn", function() {
+        var $this = $(this);
+        var id = $this.data("id");
+        var f = $this.data("for");
+
+        var api = "";
+        
+        if (f == "alert") {
+            api = "delete_alert";
+        } else {
+            return;
+        }
+
+        $.getJSON('api.php', { "api": api, "id": id }, function(data) {
+            if (!data.error) {
+                alert("success", "Success! ", data.message);
+                $this.closest("tr").remove()
+            } else {
+                alert("danger", "Error! ", data.message);
+            }
+        })
+    })
+
     $(document).on('changed.bs.select', '.selectpicker', function(e) {
         var $this = $(this);
         var id = $this.data("id");
         var target = $this.data("target");
         var f = $this.data("for");
-        var val = $this.val().join().toLowerCase();
+        var val = $this.val()
+        console.log(val)
+        if (Array.isArray(val)) {
+            val = val.join()
+        }
+        val = val.toLowerCase();
 
         var api = "";
         
@@ -470,6 +536,29 @@ $(document).ready(function() {
         } else {
             return;
         }
+
+        $.getJSON('api.php', { "api": api, "id": id, "key": target, "value": val }, function(data) {
+            if (!data.error) {
+                alert("success", "Success! ", data.message);
+            } else {
+                alert("danger", "Error! ", data.message);
+            }
+        })
+    })
+
+    $(document).on('touchspin.on.stopspin', '.touchspin', function() {
+        var $this = $(this);
+        var id = $this.data("id");
+        var target = $this.data("target");
+        var f = $this.data("for");
+        var val = $this.val()
+
+        if (f == "alert") {
+            api = "edit_alert";
+        } else {
+            return;
+        }
+
         $.getJSON('api.php', { "api": api, "id": id, "key": target, "value": val }, function(data) {
             if (!data.error) {
                 alert("success", "Success! ", data.message);
@@ -651,6 +740,7 @@ $(document).ready(function() {
         $this = $(this)
         id = $this.data("id")
         $.getJSON("api.php", { "api": "add_alert_option", "client_id": id}, function(data) {
+        console.log(data)
             if (!data.error) {
                 $div = $this.closest(".panel").find("table")
                 $div

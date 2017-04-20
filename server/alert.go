@@ -21,7 +21,7 @@ func NewAlert(aof alertOptionFields) *Alert {
 
 	switch aof.Alert {
 	case "cpu":
-		avg, err := strconv.ParseInt(aof.Value, 10, 64)
+		avg, err := strconv.ParseFloat(aof.Value, 64)
 		if err != nil {
 			return nil
 		}
@@ -127,7 +127,7 @@ func (a *Alert) Update(alert alertOptionFields) bool {
 
 	switch alert.Alert {
 	case "cpu":
-		avg, err := strconv.ParseInt(alert.Value, 10, 64)
+		avg, err := strconv.ParseFloat(alert.Value, 64)
 		if err != nil {
 			return false
 		}
@@ -143,27 +143,41 @@ func (a *Alert) Update(alert alertOptionFields) bool {
 		}
 	}
 
-	for _, s := range a.Services {
-
+	a.rw.Lock()
+	defer a.rw.Unlock()
+	a.Services = []services.Service{}
+	for _, s := range strings.Split(alert.Service, ",") {
+		switch s {
+		case "sms":
+			a.Services = append(a.Services, services.NewServiceSMS())
+		case "email":
+		}
 	}
 	return true
 }
 
 func (a *Alert) Check(resp string, db *Database) {
-	if a.Alert.Check(resp) {
-		field, err := db.InsertAlert(a.ID, a.ClientID, a.Alert.Value())
-		if err != nil {
-			a.PreviousAlert = time.Now().Add(time.Duration(a.Delay) * time.Second)
-		} else {
-			err := a.SetTimestampFromString(field.Timestamp)
-			if err != nil {
-				a.PreviousAlert = time.Now().Add(time.Duration(a.Delay) * time.Second)
+	a.rw.RLock()
+	al := a.Alert
+	a.rw.RUnlock()
+	if al.Check(resp) {
+		if time.Now().After(a.GetPreviousAlert()) {
+			for s := range a.IterServices() {
+				s.Send(a.Alert.Name(), a.Alert.Message())
 			}
 		}
 
-		if time.Now().After(a.PreviousAlert) {
-			for _, s := range a.Services {
-				s.Send(a.Alert.Name(), a.Alert.Value())
+		field, err := db.InsertAlert(a.GetID(), a.GetClientID(), al.Value())
+		if err != nil {
+			a.rw.Lock()
+			a.PreviousAlert = time.Now().Add(time.Duration(a.Delay) * time.Second)
+			a.rw.Unlock()
+		} else {
+			err := a.SetTimestampFromString(field.Timestamp)
+			if err != nil {
+				a.rw.Lock()
+				a.PreviousAlert = time.Now().Add(time.Duration(a.Delay) * time.Second)
+				a.rw.Unlock()
 			}
 		}
 	}
@@ -179,4 +193,23 @@ func (a *Alert) SetTimestampFromString(t string) error {
 	timestamp = timestamp.Add(time.Duration(a.Delay) * time.Second)
 	a.PreviousAlert = timestamp
 	return nil
+}
+
+func (a Alert) CountServices() int {
+	a.rw.RLock()
+	defer a.rw.RUnlock()
+	return len(a.Services)
+}
+
+func (a Alert) IterServices() <-chan services.Service {
+	ch := make(chan services.Service, a.CountServices())
+	go func() {
+		a.rw.RLock()
+		defer a.rw.RUnlock()
+		for _, service := range a.Services {
+			ch <- service
+		}
+		close(ch)
+	}()
+	return ch
 }

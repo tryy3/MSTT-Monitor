@@ -111,7 +111,7 @@ func NewClients(db *Database) (*Clients, error) {
 	}
 	defer checkStmt.Close()
 
-	alertStmt, err := db.Prepare("SELECT * FROM `checks` WHERE `alert_id`=? AND `client_id`=? ORDER BY `timestamp` DESC")
+	alertStmt, err := db.Prepare("SELECT * FROM `alerts` WHERE `alert_id`=? AND `client_id`=? ORDER BY `timestamp` DESC")
 	if err != nil {
 		return clients, err
 	}
@@ -139,14 +139,13 @@ func NewClients(db *Database) (*Clients, error) {
 
 						for _, a := range alerts {
 							if a.ClientID == cl.GetID() && a.CommandID == cmd.GetID() {
-								alert, err := db.GetAlert(alertStmt, a.ID, cl.GetID())
-								if err != nil {
-									return clients, err
-								}
 								al := NewAlert(a)
-								err = al.SetTimestampFromString(alert.Timestamp)
-								if err != nil {
-									return clients, err
+								alert, err := db.GetAlert(alertStmt, a.ID, cl.GetID())
+								if err == nil {
+									err = al.SetTimestampFromString(alert.Timestamp)
+									if err != nil {
+										return clients, err
+									}
 								}
 								ch.AddAlert(al)
 							}

@@ -4,6 +4,7 @@
     class AlertOptions {
         private $id = -1; // Mysql ID
         private $clientID = -1; // Client ID
+        private $commandID = -1; // Command ID
         private $alert = ""; // Alert function name
         private $value = ""; // Alert value
         private $count = -1; // Alert count
@@ -17,6 +18,10 @@
             
             if (isset($check["client_id"])) {
                 $this->clientID = $check["client_id"];
+            }
+            
+            if (isset($check["command_id"])) {
+                $this->commandID = $check["command_id"];
             }
             
             if (isset($check["alert"])) {
@@ -62,6 +67,10 @@
 
         public function getDelay() {
             return $this->delay;
+        }
+
+        public function getCommand() {
+            return $this->commandID;
         }
 
         public function getDelayFormat() {

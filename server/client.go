@@ -344,7 +344,7 @@ func (c *Client) SaveCheck(s *Server, check *Check, resp string) {
 
 	command := check.GetCommand()
 
-	r, err := s.database.InsertCheck(command.GetID(), c.GetID(), resp, check.GetError(), true)
+	r, err := s.GetDatabase().InsertCheck(command.GetID(), c.GetID(), resp, check.GetError(), true)
 	if err != nil {
 		s.GetLogger().Error(err, "Error inserting new check")
 		check.SetError(true)
@@ -358,7 +358,7 @@ func (c *Client) SaveCheck(s *Server, check *Check, resp string) {
 		check.SetID(id)
 	}
 
-	time, err := s.database.GetLastCheckTime(check.GetID())
+	time, err := s.GetDatabase().GetLastCheckTime(check.GetID())
 	if err != nil {
 		s.GetLogger().Error(err, "Error getting last timestamp")
 		check.SetError(true)
@@ -368,6 +368,10 @@ func (c *Client) SaveCheck(s *Server, check *Check, resp string) {
 
 	if !check.GetError() && command.GetStopError() {
 		c.ResetCheck(check.GetGroup().GetName())
+	}
+
+	for a := range check.IterAlerts() {
+		a.Check(resp, s.GetDatabase())
 	}
 }
 

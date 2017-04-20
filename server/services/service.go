@@ -4,6 +4,7 @@ import "time"
 
 type Service interface {
 	Send(string, string)
+	Name() string
 }
 
 func NewServiceSMS() Service {

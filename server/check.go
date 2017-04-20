@@ -140,6 +140,17 @@ func (c *Check) AddAlert(alert *Alert) {
 	c.Alerts = append(c.Alerts, alert)
 }
 
+func (c *Check) RemoveAlertByID(id int64) {
+	c.rw.Lock()
+	defer c.rw.Unlock()
+	for i, a := range c.Alerts {
+		if a.GetID() == id {
+			c.Alerts = append(c.Alerts[:i], c.Alerts[i+1:]...)
+			return
+		}
+	}
+}
+
 func (c Check) CountAlerts() int {
 	c.rw.RLock()
 	defer c.rw.RUnlock()

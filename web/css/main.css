@@ -149,6 +149,9 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 .null { color: rgba(40, 30, 240, 1); }
 .key { font-weight: bold; color: rgba(23, 180, 75, 1); }
 
+.delete-btn {
+    cursor: pointer;
+}
 
 /* Fucking Css */
 .navbar {

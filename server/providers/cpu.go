@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"sync"
 )
 
 // CPUUsage innehåller information om CPU användningen
@@ -13,8 +14,9 @@ type CPUUsage struct {
 }
 
 type AlertProviderCPU struct {
+	rw     *sync.RWMutex
 	Values []float64
-	Avg    int64
+	Avg    float64
 	Total  int64
 }
 
@@ -29,24 +31,55 @@ func (a *AlertProviderCPU) Check(resp string) bool {
 		return false
 	}
 
-	if int64(len(a.Values)) >= a.Total {
+	if int64(a.CountValues()) >= a.GetTotal() {
+		a.rw.Lock()
 		a.Values = append(a.Values[1:], usage.Procent)
+		a.rw.Unlock()
 	} else {
+		a.rw.Lock()
 		a.Values = append(a.Values, usage.Procent)
+		a.rw.Unlock()
 	}
 
-	if a.avg() > float64(a.Avg) {
+	if a.avg() > float64(a.GetAvg()) {
 		return true
 	}
 	return false
 }
 
-func (a *AlertProviderCPU) avg() float64 {
+func (a AlertProviderCPU) avg() float64 {
 	var i float64 = 0
-	for _, v := range a.Values {
+	if a.Total > int64(a.CountValues()) {
+		return i
+	}
+	for _, v := range a.GetValues() {
 		i += v
 	}
-	return i / float64(len(a.Values))
+	return i / float64(a.CountValues())
+}
+
+func (a AlertProviderCPU) GetValues() []float64 {
+	a.rw.RLock()
+	defer a.rw.RUnlock()
+	return a.Values
+}
+
+func (a AlertProviderCPU) GetTotal() int64 {
+	a.rw.RLock()
+	defer a.rw.RUnlock()
+	return a.Total
+}
+
+func (a AlertProviderCPU) GetAvg() float64 {
+	a.rw.RLock()
+	defer a.rw.RUnlock()
+	return a.Avg
+}
+
+func (a AlertProviderCPU) CountValues() int {
+	a.rw.RLock()
+	defer a.rw.RUnlock()
+	return len(a.Values)
 }
 
 func (a AlertProviderCPU) Value() string {

@@ -265,6 +265,13 @@
                         }
                         $errors = $API->Alerts()->create(intval($_GET["client_id"]));
                         break;
+                    case "delete_alert":
+                        if (!isset($_GET["id"])) {
+                            $errors->setMessage("ID parameter is not set.");
+                            break;
+                        }
+                        $errors = $API->Alerts()->delete(intval($_GET["id"]));
+                        break;
                     case "edit_alert":
                         if (!isset($_GET["id"])) {
                             $errors->setMessage("ID parameter is not set.");
@@ -291,6 +298,13 @@
                                     break;
                                 }
                                 $errors = $API->Alerts()->editCount($_GET["id"], intval($_GET["value"]));
+                                break;
+                            case "command":
+                                if (!is_numeric($_GET["value"])) {
+                                    $errors->setMessage("Value needs to be numeric.");
+                                    break;
+                                }
+                                $errors = $API->Alerts()->editCommand($_GET["id"], intval($_GET["value"]));
                                 break;
                             case "delay":
                                 if (!is_numeric($_GET["value"])) {

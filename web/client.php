@@ -93,9 +93,39 @@
         }
     }
 
+    function createDropdown($options, $k, $id, $v) {
+        foreach ($options as $key => $value) {
+            if ($k == $key) {
+                $opt = $options[$key]; 
+                switch (strtolower($opt["Value"])) {
+                    case 'procent':
+                        $val = intval($v);
+                        return '<input 
+                            class="touchspin"
+                            type="text"
+                            value="'.$val.'"
+                            data-min="'.$opt["Min"].'"
+                            data-max="'.$opt["Max"].'"
+                            data-id="'.$id.'"
+                            data-target="value"
+                            data-for="alert"
+                            data-postfix="%"
+                            data-decimals="2"
+                            >';
+                }
+            }
+        }
+    }
+
     function isActive($key, $checks, $true = "selected", $false = "") {
-        foreach (explode(",", $checks) as $check) {
-            if ($key == $check) {
+        if (strpos($checks, ',') !== false) {
+            foreach (explode(",", $checks) as $check) {
+                if ($key == $check) {
+                    return $true;
+                }
+            }
+        } else {
+            if ($key == $checks) {
                 return $true;
             }
         }
@@ -320,7 +350,9 @@
                 </table>
             </div>
         </div>
-        <div class="col-md-8">
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title">Alert Options</h3>
@@ -328,39 +360,67 @@
                 </div>
                 <table class="table table-hover table-bordered">
                     <tr>
-                        <th width="5%">ID</th>
-                        <th width="18%">Alert</th>
-                        <th width="20%">Value</th>
-                        <th width="7%">Count</th>
-                        <th width="25%">Delay</th>
+                        <th width="2%">ID</th>
+                        <th width="12%">Alert</th>
+                        <th width="16%">Value</th>
+                        <th width="9%">Count</th>
+                        <th width="18%">Command</th>
+                        <th width="18%">Delay</th>
                         <th width="25%">Service</th>
                     </tr>
                     <?php foreach ($client->getAlertOptions() as $alertOption) { ?>
                         <tr>
                             <td><?php echo $alertOption->getID() ?></td>
-                            <td 
-                                contenteditable
-                                data-id="<?php echo $alertOption->getID() ?>"
-                                data-for="alert"
-                                data-target="alert"
-                                data-previous="<?php echo $alertOption->getAlert()?>">
-                                    <?php echo $alertOption->getAlert() ?>
+                            <td>
+                                <select
+                                    class="selectpicker dropdown-monitor-main"
+                                    data-width="100%"
+                                    title="Choose an alert function."
+                                    data-id="<?php echo $alertOption->getID() ?>"
+                                    data-target="alert"
+                                    data-child-target="value"
+                                    data-for="alert"
+                                    >
+                                    <?php foreach ($config["AlertOptions"] as $key => $value) { ?>
+                                        <option <?php echo isActive($key, $alertOption->getAlert()) ?>><?php echo $key ?></option>
+                                    <?php } ?>
+                                </select>
                             </td>
-                            <td 
-                                contenteditable
-                                data-id="<?php echo $alertOption->getID() ?>"
-                                data-for="alert"
-                                data-target="value"
-                                data-previous="<?php echo $alertOption->getValue()?>">
-                                    <?php echo $alertOption->getValue() ?>
+                            <td class="dropdown-monitor-child">
+                                <?php echo createDropdown($config["AlertOptions"], $alertOption->getAlert(), $alertOption->getID(), $alertOption->getValue()) ?>
+                                </td>
+                            <td>
+                                <input
+                                    class="touchspin"
+                                    type="text"
+                                    value="<?php echo $alertOption->getCount() ?>"
+                                    data-id="<?php echo $alertOption->getID() ?>"
+                                    data-target="count"
+                                    data-for="alert"
+                                    data-min="0"
+                                    data-max="1000"
+                                    data-verticalbuttons="true"
+                                    data-verticalupclass="glyphicon glyphicon-plus"
+                                    data-verticaldownclass="glyphicon glyphicon-minus"
+                                    >
                             </td>
-                            <td 
-                                contenteditable
-                                data-id="<?php echo $alertOption->getID() ?>"
-                                data-for="alert"
-                                data-target="count"
-                                data-previous="<?php echo $alertOption->getCount()?>">
-                                    <?php echo $alertOption->getCount() ?>
+                            <td>
+                                <select
+                                    class="selectpicker"
+                                    data-width="100%"
+                                    title="Choose a command."
+                                    data-id="<?php echo $alertOption->getID() ?>"
+                                    data-target="command"
+                                    data-for="alert">
+                                    <?php foreach ($client->getCommands() as $command) { ?>
+                                        <option
+                                            value="<?php echo $command->getCommandID()?>"
+                                            <?php echo isActive($command->getID(), $alertOption->getCommand()) ?>
+                                            >
+                                            <?php echo $command->getName() ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
                             </td>
                             <td>
                                 <div class="input-group bootstrap-timepicker timepicker">
@@ -379,7 +439,7 @@
                                 <select
                                     multiple
                                     class="selectpicker"
-                                    data-width="100%"
+                                    data-width="90%"
                                     data-actions-box="true"
                                     data-id="<?php echo $alertOption->getID() ?>"
                                     data-target="service"
@@ -387,6 +447,11 @@
                                     <option <?php echo isActive('email', $alertOption->getService()) ?>>Email</option>
                                     <option <?php echo isActive('sms', $alertOption->getService()) ?>>SMS</option>
                                 </select>
+                                <i 
+                                    class="delete-btn fa fa-close fa-close-red fa-lg"
+                                    data-id="<?php echo $alertOption->getID() ?>"
+                                    data-for="alert"
+                                    style="width: 8%; padding: 0; margin: 0; text-align: center;"></i>
                             </td>
                         </tr>
                     <?php } ?>

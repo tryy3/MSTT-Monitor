@@ -53,6 +53,7 @@ func (h *HTTPServer) Start() {
 	h.Handlers["command"] = CommandHandler{}
 	h.Handlers["client"] = ClientHandler{}
 	h.Handlers["group"] = GroupHandler{}
+	h.Handlers["alert"] = GroupHandler{}
 
 	http.Handle("/", h)
 	err := http.ListenAndServe(h.Server.GetConfig().APIAdress, nil)

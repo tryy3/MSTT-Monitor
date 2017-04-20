@@ -15,41 +15,56 @@ func (AlertHandler) Insert(r *HTTPHandler) {
 		return
 	}
 
+	alertStmt, err := r.Server.GetDatabase().Prepare("SELECT * FROM `checks` WHERE `alert_id`=? AND `client_id`=? ORDER BY `timestamp` DESC")
+	if err != nil {
+		r.Server.GetLogger().Error(err, "Internal error")
+		r.Output(APIResponse{Error: true, Message: "Internal error"})
+		return
+	}
+	defer alertStmt.Close()
+
 	for cl := range r.Server.GetClients().IterClients() {
 		for ch := range cl.IterChecks() {
 			for al := range ch.IterAlerts() {
 				if al.GetID() == r.Request.ID {
-					al.Update(alert)
+					r.Output(APIResponse{Error: true, Message: "There is already an alert with this ID in cache."})
+					return
 				}
 			}
 		}
 	}
-	for cmd := range groups[0].IterCommands() {
-		check, err := r.Server.GetDatabase().GetCheck(stmt, cl.GetID(), cmd.GetID())
-		if err != nil {
-			r.Server.GetLogger().Error(err, "Internal error")
-			r.Output(APIResponse{Error: true, Message: "Internal error"})
-			return
-		}
 
-		ch, err := NewCheck(check, cmd)
-		if err != nil {
-			r.Server.GetLogger().Error(err, "Internal error")
-			r.Output(APIResponse{Error: true, Message: "Internal error"})
-			return
+	for cl := range r.Server.GetClients().IterClients() {
+		if cl.GetID() == alert.ClientID {
+			for ch := range cl.IterChecks() {
+				if ch.GetCommand().GetID() == alert.CommandID {
+					a := NewAlert(alert)
+
+					al, err := r.Server.GetDatabase().GetAlert(alertStmt, a.GetID(), cl.GetID())
+					if err == nil {
+						err = a.SetTimestampFromString(al.Timestamp)
+						if err != nil {
+							r.Server.GetLogger().Error(err, "Internal error")
+							r.Output(APIResponse{Error: true, Message: "Internal error"})
+							return
+						}
+					}
+					r.Output(APIResponse{Error: false, Message: "Added the alert to the client"})
+					return
+				}
+			}
 		}
-		cl.AddCheck(ch)
 	}
-	cl.AddGroup(groups[0])
-	r.Output(APIResponse{Error: false, Message: "Added the group to the client"})
+	r.Output(APIResponse{Error: true, Message: "Can't find the correct client or command to add the alert to"})
 }
 
-func (GroupHandler) Update(r *HTTPHandler) {
-	if r.Request.GroupID == -1 {
-		r.Output(APIResponse{Error: true, Message: "You need to supply a group name"})
+func (AlertHandler) Update(r *HTTPHandler) {
+	if r.Request.ID == -1 {
+		r.Output(APIResponse{Error: true, Message: "You need to supply an alert option ID"})
 		return
 	}
-	group, err := r.Server.GetDatabase().GetGroupByID(r.Request.GroupID)
+
+	alert, err := r.Server.GetDatabase().GetAlertOptionsByID(r.Request.ID)
 	if err != nil {
 		r.Server.GetLogger().Error(err, "Internal error")
 		r.Output(APIResponse{Error: true, Message: "Internal error"})
@@ -57,42 +72,39 @@ func (GroupHandler) Update(r *HTTPHandler) {
 	}
 
 	for cl := range r.Server.GetClients().IterClients() {
-		for g := range cl.IterGroups() {
-			for c := range g.IterCommands() {
-				if c.GetGroupID() == group.ID {
-					c.SetNextCheck(group.NextCheck)
-					c.SetStopError(group.StopError)
+		if cl.GetID() == alert.ClientID {
+			for ch := range cl.IterChecks() {
+				if ch.GetCommand().GetID() == alert.CommandID {
+					for a := range ch.IterAlerts() {
+						if a.GetID() == alert.ID {
+							a.Update(alert)
+						}
+					}
+					r.Output(APIResponse{Error: false, Message: "Updated the alert for the client"})
+					return
 				}
 			}
 		}
 	}
-	r.Output(APIResponse{Error: false, Message: "Updated the group in cache"})
+	r.Output(APIResponse{Error: true, Message: "Can't find the correct client or command to update the alert"})
 }
 
-func (GroupHandler) Delete(r *HTTPHandler) {
-	if r.Request.GroupName == "" {
-		r.Output(APIResponse{Error: true, Message: "You need to supply a group name."})
+func (AlertHandler) Delete(r *HTTPHandler) {
+	if r.Request.ID == -1 {
+		r.Output(APIResponse{Error: true, Message: "You need to supply an alert option ID"})
 		return
 	}
 
-	if r.Request.ID != -1 {
-		cl := r.Server.GetClients().GetClientByID(r.Request.ID)
-		if cl == nil {
-			r.Output(APIResponse{Error: true, Message: "Can't find a client with this ID"})
-			return
+	for cl := range r.Server.GetClients().IterClients() {
+		for ch := range cl.IterChecks() {
+			for alert := range ch.IterAlerts() {
+				if alert.GetID() == r.Request.ID {
+					ch.RemoveAlertByID(r.Request.ID)
+					r.Output(APIResponse{Error: false, Message: "Deleted the alert from the client"})
+					return
+				}
+			}
 		}
-
-		ok := cl.RemoveGroupsByName(r.Request.GroupName)
-		if !ok {
-			r.Output(APIResponse{Error: true, Message: "Client does not belong to this group in cache"})
-		} else {
-			r.Output(APIResponse{Error: false, Message: "Group has now been removed from the client in cache"})
-		}
-		return
-	} else {
-		for cl := range r.Server.GetClients().IterClients() {
-			cl.RemoveGroupsByName(r.Request.GroupName)
-		}
-		r.Output(APIResponse{Error: false, Message: "Group has now been removed from all clients in cache"})
 	}
+	r.Output(APIResponse{Error: true, Message: "Can't find the correct client or command to delete the alert from"})
 }

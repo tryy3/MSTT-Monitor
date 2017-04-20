@@ -4,6 +4,7 @@
 <script src="js/bootstrap-switch.min.js"></script>
 <script src="js/bootstrap-select.min.js"></script>
 <script src="js/bootstrap-timepicker.js"></script>
+<script src="js/jquery.bootstrap-touchspin.min.js"></script>
 <script src="js/jquery.canvasjs.min.js"></script>
 <script src="js/mstt-monitor.js"></script>
 
@@ -18,6 +19,9 @@ $(function () {
                     json_encode($c->Output()).",".
                     json_encode($options).");\n";
             }
+
+            echo 'createDropdown(".dropdown-monitor-main", ".dropdown-monitor-child",'.json_encode($config["AlertOptions"]).');';
+            echo '$(".touchspin").TouchSpin({ step: 1, boostat: 5, maxboostedstep: 10 });';
         }
         if ($page == "start") {
             $options["page"] = "start";
