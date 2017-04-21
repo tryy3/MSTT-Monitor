@@ -30,6 +30,7 @@ func (h HTTPHandler) Output(a APIResponse) {
 		http.Error(h.w, "Something went wrong internal, contact IT support", http.StatusInternalServerError)
 		return
 	}
+	h.w.Header().Set("Content-Type", "application/json")
 	h.w.Write(out)
 }
 
@@ -63,7 +64,6 @@ func (h *HTTPServer) Start() {
 }
 
 func (h HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	apiHandler := &HTTPHandler{
 		Server: h.Server,
 		w:      w,
@@ -96,13 +96,13 @@ func (h HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch strings.ToLower(req.Type) {
 		case "insert":
 			handler.Insert(apiHandler)
-			break
+			return
 		case "update":
 			handler.Update(apiHandler)
-			break
+			return
 		case "delete":
 			handler.Delete(apiHandler)
-			break
+			return
 		default:
 			apiHandler.Output(APIResponse{Error: true, Message: "Invalid Request type"})
 			return

@@ -1,8 +1,11 @@
 package server
 
+import "fmt"
+
 type CommandHandler struct{}
 
 func (CommandHandler) Insert(r *HTTPHandler) {
+	fmt.Printf("%#v\n", r.Request)
 	if r.Request.CommandID == -1 {
 		r.Output(APIResponse{Error: true, Message: "You need to supply a Command ID"})
 		return
@@ -14,6 +17,8 @@ func (CommandHandler) Insert(r *HTTPHandler) {
 	}
 
 	cmd, err := r.Server.GetDatabase().GetCommand(r.Request.CommandID)
+	fmt.Printf("%#v\n", cmd)
+	fmt.Printf("%#v\n", err)
 	if err != nil {
 		r.Server.GetLogger().Error(err, "Internal error")
 		r.Output(APIResponse{Error: true, Message: "Internal error"})
@@ -21,6 +26,8 @@ func (CommandHandler) Insert(r *HTTPHandler) {
 	}
 
 	group, err := r.Server.GetDatabase().GetGroupByCommand(r.Request.GroupName, r.Request.CommandID)
+	fmt.Printf("%#v\n", group)
+	fmt.Printf("%#v\n", err)
 	if err != nil {
 		r.Server.GetLogger().Error(err, "Internal error")
 		r.Output(APIResponse{Error: true, Message: "Internal error"})
@@ -35,7 +42,10 @@ func (CommandHandler) Insert(r *HTTPHandler) {
 		StopError: group.StopError,
 	}
 
-	stmt, err := r.Server.GetDatabase().Prepare("SELECT * FROM `check` WHERE `command_id`=? AND `client_id` ORDER BY `timestamp` DESC")
+	fmt.Printf("%#v\n", command)
+	stmt, err := r.Server.GetDatabase().Prepare("SELECT * FROM `checks` WHERE `command_id`=? AND `client_id` ORDER BY `timestamp` DESC")
+	fmt.Printf("%#v\n", stmt)
+	fmt.Printf("%#v\n", err)
 	if err != nil {
 		r.Server.GetLogger().Error(err, "Internal error")
 		r.Output(APIResponse{Error: true, Message: "Internal error"})
@@ -44,7 +54,6 @@ func (CommandHandler) Insert(r *HTTPHandler) {
 	defer stmt.Close()
 
 	for c := range r.Server.GetClients().IterClients() {
-
 		getCheck := false
 		for g := range c.IterGroups() {
 			if g.GetName() == r.Request.GroupName {
@@ -99,6 +108,7 @@ func (CommandHandler) Update(r *HTTPHandler) {
 }
 
 func (CommandHandler) Delete(r *HTTPHandler) {
+	fmt.Printf("%#v\n", r.Request)
 	if r.Request.CommandID == -1 {
 		r.Output(APIResponse{Error: true, Message: "You need to supply a Command ID"})
 		return

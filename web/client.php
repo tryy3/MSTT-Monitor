@@ -117,21 +117,6 @@
         }
     }
 
-    function isActive($key, $checks, $true = "selected", $false = "") {
-        if (strpos($checks, ',') !== false) {
-            foreach (explode(",", $checks) as $check) {
-                if ($key == $check) {
-                    return $true;
-                }
-            }
-        } else {
-            if ($key == $checks) {
-                return $true;
-            }
-        }
-        return $false;
-    }
-
     $checks = array();
     try {
         $client = Utils\getClient($monitorDB, $_GET['id']);

@@ -69,16 +69,18 @@
             ));
             $resp = curl_exec($ch);
             $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
+            $errno = curl_errno($ch);
+            curl_close($ch);
             if ( $status != 200 ) {
-                error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch));
+                error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . $err . ", curl_errno " . $errno);
                 $error->setMessage("One or more servers failed, check logs.");
                 return "";
             }
 
-            curl_close($ch);
             $response = json_decode($resp, true);
             if ($response["error"]) {
-                error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch));
+                error_log("Error: call to URL $url failed with status $status, response $resp, curl_error " . $err . ", curl_errno " . $errno);
                 $error->setMessage("One or more servers failed, check logs.");
                 return "";
             }

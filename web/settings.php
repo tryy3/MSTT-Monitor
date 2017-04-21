@@ -1,4 +1,6 @@
 <?php
+	use \MSTT_MONITOR\Utils;
+
     function getGroups($db) {
         $out = array();
         $stmt = $db->query("SELECT id, command_id, group_name, next_check, stop_error FROM groups");
@@ -34,9 +36,19 @@
         if ($input == $val) return 'selected="selected"';
     }
 
+    function findCommand($id, $commands) {
+        foreach ($commands as $cmd) {
+            if ($cmd->getCommandID() == $id) {
+                return $cmd->getName();
+            }
+        }
+    }
+
     try {
-        $groups = getGroups($monitorDB);
-        $commands = getCommands($monitorDB);
+        $groups = Utils\getAllGroups($monitorDB);
+        $commands = Utils\getAllCommands($monitorDB);
+        //$groups = getGroups($monitorDB);
+        //$commands = getCommands($monitorDB);
         $servers = getServers($monitorDB);
     } catch(PDOException $ex) {
         echo $ex;
@@ -63,9 +75,9 @@
                     </div>
                 </a>
                 <?php foreach ($groups as $group) { ?>
-                    <button type="button" class="list-group-item checks" data-target="<?php echo $group['group_name']?>">
+                    <button type="button" class="list-group-item checks" data-target="<?php echo $group->getName()?>">
                         <h4 class="list-group-item-heading">
-                            <?php echo $group['group_name'] ?>
+                            <?php echo $group->getName() ?>
                             <i class="delete-group fa fa-close fa-close-red fa-lg pull-right"></i>
                         </h4>
                     </button>
@@ -74,9 +86,23 @@
         </div>
         <div class="col-md-4 group-list">
             <?php foreach($groups as $group) { ?>
-                <div class="panel panel-primary checks-item drop-group" data-check="<?php echo $group['group_name']?>" style="display:none;">
+                <div class="panel panel-primary checks-item drop-group" data-check="<?php echo $group->getName()?>" style="display:none;">
                     <div class="panel-heading"> 
-                        <h3 class="panel-title"><?php echo $group['group_name'] ?></h3>
+                        <h3 class="panel-title"><?php echo $group->getName() ?></h3>
+                        <select
+                            class="selectpicker"
+                            data-for="toggle_group"
+                            data-group="<?php echo $group->getName() ?>"
+                            multiple>
+                            <?php foreach ($commands as $cmd) { ?>
+                                <option 
+                                    <?php echo isActive($cmd->getCommandID(), $group->getCommands()) ?>
+                                    data-id="<?php echo $cmd->getCommandID()?>"
+                                    data-cmd="<?php echo isActive($cmd->getCommandID(), $group->getCommands(), 'id')?>">
+                                    <?php echo $cmd->getName() ?>
+                                </option>
+                            <?php } ?>
+                        </select>
                     </div>
                     
                     <table class="table table-groups table-hover table-bordered table-condensed">
@@ -86,17 +112,29 @@
                             <th width=25%>Nästa Check</th>
                             <th width=25%>Stop Error</th>
                         </tr>
-                        <?php foreach($group['commands'] as $cmd) { ?>
-                            <tr class="drag">
-                                <td><?php echo $cmd['id'] ?></td>
-                                <td><?php echo $commands[$cmd['command_id']]['namn']?></td>
-                                <td contenteditable data-previous="<?php echo $cmd['next_check']?>" data-for="group" data-target="next_check" data-id="<?php echo $cmd['id']?>"><?php echo $cmd['next_check']?></td>
+                        <?php foreach($group->getCommands() as $cmd) { ?>
+                            <tr>
+                                <td><?php echo $cmd->getID() ?></td>
+                                <td><?php echo findCommand($cmd->getCommandID(), $commands) ?></td>
+                                <td 
+                                    contenteditable
+                                    data-previous="<?php echo $cmd->getNextCheck()?>"
+                                    data-for="group"
+                                    data-target="next_check"
+                                    data-id="<?php echo $cmd->getID()?>">
+                                    <?php echo $cmd->getNextCheck()?>
+                                </td>
                                 <td>
-                                    <select data-for="group" data-id="<?php echo $cmd['id']?>" data-target="stop_error" class="form-control" style="width:80%; display:inline">
-                                        <option <?php echo isSelected(toBool($cmd['stop_error']), true) ?>>True</option>
-                                        <option <?php echo isSelected(toBool($cmd['stop_error']), false) ?>>False</option>
+                                    <select
+                                        data-for="group"
+                                        data-id="<?php echo $cmd->getID()?>"
+                                        data-target="stop_error"
+                                        class="form-control"
+                                        style="width:80%; display:inline">
+                                        <option <?php echo isSelected(toBool($cmd->getStopError()), true) ?>>True</option>
+                                        <option <?php echo isSelected(toBool($cmd->getStopError()), false) ?>>False</option>
                                     </select>
-                                    <i data-id="<?php echo $cmd['id']?>" class="remove-command-group fa fa-close fa-close-red fa-lg pull-right"></i>
+                                    <i data-id="<?php echo $cmd->getID()?>" class="remove-command-group fa fa-close fa-close-red fa-lg pull-right"></i>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -123,22 +161,47 @@
                         <th width=20%>Format</th>
                     </tr>
                     <?php foreach($commands as $cmd) { ?>
-                        <tr class="drag">
-                            <td><?php echo $cmd['id']?></td>
-                            <td contenteditable data-for="cmd" data-id="<?php echo $cmd['id']?>" data-target="namn" data-previous="<?php echo $cmd['namn']?>"><?php echo $cmd['namn']?></td>
-                            <td contenteditable data-for="cmd" data-id="<?php echo $cmd['id']?>" data-target="command" data-previous="<?php echo $cmd['command']?>"><?php echo $cmd['command']?></td>
-                            <td contenteditable data-for="cmd" data-id="<?php echo $cmd['id']?>" data-target="description" data-previous="<?php echo $cmd['description']?>"><?php echo $cmd['description']?></td>
+                        <tr>
+                            <td><?php echo $cmd->getCommandID()?></td>
+                            <td
+                                contenteditable
+                                data-for="cmd"
+                                data-id="<?php echo $cmd->getCommandID()?>"
+                                data-target="namn"
+                                data-previous="<?php echo $cmd->getName()?>">
+                                <?php echo $cmd->getName()?>
+                            </td>
+                            <td
+                                contenteditable
+                                data-for="cmd"
+                                data-id="<?php echo $cmd->getCommandID()?>"
+                                data-target="command"
+                                data-previous="<?php echo $cmd->getCommand()?>">
+                                <?php echo $cmd->getCommand()?>
+                            </td>
+                            <td
+                                contenteditable
+                                data-for="cmd"
+                                data-id="<?php echo $cmd->getCommandID()?>"
+                                data-target="description"
+                                data-previous="<?php echo $cmd->getDescription()?>">
+                                <?php echo $cmd->getDescription()?>
+                            </td>
                             <td>
-                                <select data-for="cmd" data-id="<?php echo $cmd['id']?>" data-target="format" class="form-control" style="width:80%; display:inline">
-                                    <option <?php echo isSelected($cmd['format'], '') ?>>Nothing</option>
-                                    <option <?php echo isSelected($cmd['format'], 'memory') ?>>Memory</option>
-                                    <option <?php echo isSelected($cmd['format'], 'disc') ?>>Disc</option>
-                                    <option <?php echo isSelected($cmd['format'], 'procent') ?>>Procent</option>
-                                    <option <?php echo isSelected($cmd['format'], 'date') ?>>Date</option>
-                                    <option <?php echo isSelected($cmd['format'], 'seconds') ?>>Seconds</option>
-                                    <option <?php echo isSelected($cmd['format'], 'network') ?>>Network</option>
+                                <select
+                                    data-for="cmd"
+                                    data-id="<?php echo $cmd->getCommandID()?>"
+                                    data-target="format" class="form-control"
+                                    style="width:80%; display:inline">
+                                    <option <?php echo isSelected($cmd->getFormat(), '') ?>>Nothing</option>
+                                    <option <?php echo isSelected($cmd->getFormat(), 'memory') ?>>Memory</option>
+                                    <option <?php echo isSelected($cmd->getFormat(), 'disc') ?>>Disc</option>
+                                    <option <?php echo isSelected($cmd->getFormat(), 'procent') ?>>Procent</option>
+                                    <option <?php echo isSelected($cmd->getFormat(), 'date') ?>>Date</option>
+                                    <option <?php echo isSelected($cmd->getFormat(), 'seconds') ?>>Seconds</option>
+                                    <option <?php echo isSelected($cmd->getFormat(), 'network') ?>>Network</option>
                                 </select>
-                                <i data-id="<?php echo $cmd['id']?>" class="delete-command fa fa-close fa-close-red fa-lg pull-right"></i>
+                                <i data-id="<?php echo $cmd->getCommandID()?>" class="delete-command fa fa-close fa-close-red fa-lg pull-right"></i>
                             </td>
                         </tr>
                     <?php } ?>

@@ -133,7 +133,7 @@
             }
 
             $errors->setBaseURL("/update/command");
-            $errors->setForm(array("type"=>"delete", "id"=>intval($command["command_id"]), "group"=>$group));
+            $errors->setForm(array("type"=>"delete", "command_id"=>intval($id), "group"=>$group));
 
             $errors->setError(false);
             $errors->setMessage("Successfully removed the command from the group.");
@@ -147,7 +147,7 @@
             $checkCommandStmt = $this->db->prepare("SELECT namn FROM commands WHERE id = ? LIMIT 1");
             $insertCommandStmt = $this->db->prepare("INSERT INTO groups(command_id, group_name, next_check, stop_error) VALUES (?,?,?,?)");
 
-            $checkGroupStmt->execute(array($group));
+            $checkGroupStmt->execute(array($groupName));
             if ($checkGroupStmt->rowCount() > 0) {
                 while($row = $checkGroupStmt->fetch(\PDO::FETCH_ASSOC)) {
                     if ($row["command_id"] == $commandID) {
@@ -167,7 +167,7 @@
             $insertCommandStmt->execute(array($commandID, $groupName, -1, 0));
 
             $errors->setBaseURL("/update/command");
-            $errors->setForm(array("type"=>"insert", "id"=>intval($commandID), "group"=>$groupName));
+            $errors->setForm(array("type"=>"insert", "command_id"=>intval($commandID), "group_name"=>$groupName));
 
             $errors->setError(false);
             $errors->setMessage(array($this->db->lastInsertId(), $cmd, -1, 0));

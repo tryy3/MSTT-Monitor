@@ -46,4 +46,30 @@ function ParseParams($params, $value) {
 	}
 	return $value;
 }
+
+function isActive($key, $checks, $true = "selected", $false = "") {
+    if (is_array($checks)) {
+        foreach ($checks as $check) {
+            if (is_a($check, 'MSTT_MONITOR\Utils\Command')) {
+                if ($key == $check->getCommandID()) {
+					if ($true == 'id') {
+						return $check->getID();
+					}
+                    return $true;
+                }
+            }
+        }
+    } else if (strpos($checks, ',') !== false) {
+        foreach (explode(",", $checks) as $check) {
+            if ($key == $check) {
+                return $true;
+            }
+        }
+    } else {
+        if ($key == $checks) {
+            return $true;
+        }
+    }
+    return $false;
+}
 ?>

@@ -171,8 +171,6 @@ function createDropdown(element, child, config) {
                     .data("id", $element.data("id"))
                 
                 $child.append($spin)
-
-                console.log($spin)
                 $spin.TouchSpin({
                         min: v.Min,
                         max: v.Max,
@@ -182,7 +180,6 @@ function createDropdown(element, child, config) {
                         maxboostedstep: 10,
                         postfix: '%'
                     })
-                console.log($spin)
                 
                 break;
         }
@@ -420,9 +417,7 @@ $(document).ready(function() {
         group = $(this).closest(".checks").data("target")
         $.getJSON('api.php', { "api": "delete_group", "group": group }, function(data) {
             if (!data.error) {
-                console.log($(".checks[data-target='"+group+"']"))
                 $(".checks[data-target='"+group+"']").remove()
-                console.log($(".checks-item[data-check='"+group+"']"))
                 $(".checks-item[data-check='"+group+"']").remove()
                 alert("success", "Success! ", data.message)
             } else { 
@@ -517,13 +512,12 @@ $(document).ready(function() {
         })
     })
 
-    $(document).on('changed.bs.select', '.selectpicker', function(e) {
+    $(document).on('changed.bs.select', '.selectpicker', function(e, index, toggle) {
         var $this = $(this);
         var id = $this.data("id");
         var target = $this.data("target");
         var f = $this.data("for");
         var val = $this.val()
-        console.log(val)
         if (Array.isArray(val)) {
             val = val.join()
         }
@@ -532,18 +526,39 @@ $(document).ready(function() {
         var api = "";
         
         if (f == "alert") {
-            api = "edit_alert";
+            $.getJSON('api.php', { "api": "edit_alert", "id": id, "key": target, "value": val }, function(data) {
+                if (!data.error) {
+                    alert("success", "Success! ", data.message);
+                } else {
+                    alert("danger", "Error! ", data.message);
+                }
+            })
+        } else if (f == "toggle_group") {
+            group = $this.data("group")
+            if (toggle) {
+                command = $($this.children()[index]).data("id")
+                console.log({ "api": "add_command_group", "command": command, "group": group })
+                $.getJSON('api.php', { "api": "add_command_group", "command": command, "group": group }, function(data) {
+                    if (!data.error) {
+                        alert("success", "Success! ", data.message);
+                    } else {
+                        alert("danger", "Error! ", data.message);
+                    }
+                })
+            } else {
+                id = $($this.children()[index]).data("cmd")
+                console.log({ "api": "remove_command_group", "id": id, "group": group })
+                $.getJSON('api.php', { "api": "remove_command_group", "id": id, "group": group }, function(data) {
+                    if (!data.error) {
+                        alert("success", "Success! ", data.message);
+                    } else {
+                        alert("danger", "Error! ", data.message);
+                    }
+                })
+            }
         } else {
             return;
         }
-
-        $.getJSON('api.php', { "api": api, "id": id, "key": target, "value": val }, function(data) {
-            if (!data.error) {
-                alert("success", "Success! ", data.message);
-            } else {
-                alert("danger", "Error! ", data.message);
-            }
-        })
     })
 
     $(document).on('touchspin.on.stopspin', '.touchspin', function() {
@@ -626,7 +641,6 @@ $(document).ready(function() {
         }
 
         $.getJSON("api.php", { "api": api, "id": id, "key": target, "value": $this.text() }, function(data) {
-            console.log(data)
             if (!data.error) {
                 alert("success", "Success! ", data.message);
                 $this.data("previous", $this.text());
@@ -740,7 +754,6 @@ $(document).ready(function() {
         $this = $(this)
         id = $this.data("id")
         $.getJSON("api.php", { "api": "add_alert_option", "client_id": id}, function(data) {
-        console.log(data)
             if (!data.error) {
                 $div = $this.closest(".panel").find("table")
                 $div
