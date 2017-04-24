@@ -47,7 +47,7 @@
             if ($stmt->rowCount()<=0) {
                 return "";
             }
-            return $stmt->fetch(PDO::FETCH_ASSOC)["group_names"];
+            return $stmt->fetch(\PDO::FETCH_ASSOC)["group_names"];
         }
 
         /**

@@ -47,6 +47,7 @@ type APIResponse struct {
 
 type HTTPServer struct {
 	Handlers map[string]APIHandler
+	Check    CheckHandler
 	Server   *Server
 }
 
@@ -55,6 +56,7 @@ func (h *HTTPServer) Start() {
 	h.Handlers["client"] = ClientHandler{}
 	h.Handlers["group"] = GroupHandler{}
 	h.Handlers["alert"] = GroupHandler{}
+	h.Check = CheckHandler{}
 
 	http.Handle("/", h)
 	err := http.ListenAndServe(h.Server.GetConfig().APIAdress, nil)
@@ -70,6 +72,20 @@ func (h HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r:      r,
 	}
 
+	decoder := json.NewDecoder(r.Body)
+	req := APIRequest{ID: -1, CommandID: -1, GroupID: -1}
+	err := decoder.Decode(&req)
+	if err != nil {
+		h.Server.GetLogger().Error(err, "Internal error")
+		apiHandler.Output(APIResponse{Error: true, Message: "Internal error when parsing request body"})
+		return
+	}
+	defer r.Body.Close()
+	apiHandler.Request = req
+
+	if strings.HasPrefix(r.URL.Path, "/check") {
+		h.Check.Serve(apiHandler)
+	}
 	if strings.HasPrefix(r.URL.Path, "/update") {
 		path := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 		if len(path) < 2 {
@@ -81,17 +97,6 @@ func (h HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			apiHandler.Output(APIResponse{Error: true, Message: "Invalid Path"})
 			return
 		}
-
-		decoder := json.NewDecoder(r.Body)
-		req := APIRequest{ID: -1, CommandID: -1, GroupID: -1}
-		err := decoder.Decode(&req)
-		if err != nil {
-			h.Server.GetLogger().Error(err, "Internal error")
-			apiHandler.Output(APIResponse{Error: true, Message: "Internal error when parsing request body"})
-			return
-		}
-		defer r.Body.Close()
-		apiHandler.Request = req
 
 		switch strings.ToLower(req.Type) {
 		case "insert":

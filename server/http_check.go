@@ -14,7 +14,7 @@ func (c CheckHandler) Serve(r *HTTPHandler) {
 		return
 	}
 
-	cl := r.Server.GetClients().GetClientByID(r.Request.ID)
+	cl := r.Server.GetHandler().GetClientByID(r.Request.ID)
 	if cl == nil {
 		r.Output(APIResponse{Error: true, Message: "Can't find a client in cache with this ID"})
 		return
@@ -23,8 +23,20 @@ func (c CheckHandler) Serve(r *HTTPHandler) {
 	if r.Request.CommandID != -1 {
 		if r.Request.Save {
 			resp := []string{}
+			found := false
+
 			for _, che := range cl.GetChecksByCommandID(r.Request.CommandID) {
+				found = true
 				resp = append(resp, cl.SendCheck(r.Server, che))
+			}
+			if !found {
+				response, err := c.SendCheck(r, cl, r.Request.Command)
+				if err != nil {
+					r.Output(APIResponse{Error: true, Message: response})
+				}
+
+				r.Server.GetDatabase().InsertCheck(r.Request.CommandID, cl.GetID(), response, err != nil, true)
+				resp = append(resp, response)
 			}
 			b, _ := json.Marshal(resp)
 			r.Output(APIResponse{Error: false, Message: fmt.Sprintf("%s", b)})

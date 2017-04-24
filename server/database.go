@@ -98,14 +98,14 @@ func (d Database) Close() (err error) {
 	return
 }
 
-func (d Database) GetClients() ([]*clientFields, error) {
-	c := []*clientFields{}
+func (d Database) GetClients() ([]clientFields, error) {
+	c := []clientFields{}
 	err := d.db.Select(&c, "SELECT * FROM `clients`")
 	return c, err
 }
 
-func (d Database) GetClient(id int64) (*clientFields, error) {
-	c := &clientFields{}
+func (d Database) GetClient(id int64) (clientFields, error) {
+	c := clientFields{}
 	stmt, err := d.db.Preparex("SELECT * FROM `clients` WHERE `id`=?")
 	if err != nil {
 		return c, err

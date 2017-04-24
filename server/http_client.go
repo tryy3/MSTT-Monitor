@@ -19,11 +19,11 @@ func (ClientHandler) Update(r *HTTPHandler) {
 		return
 	}
 
-	cl := r.Server.GetClients().GetClientByID(r.Request.ID)
+	cl := r.Server.GetHandler().GetClientByID(r.Request.ID)
 
 	if cl == nil {
 		client := NewClient(c)
-		r.Server.GetClients().AddClient(client)
+		r.Server.GetHandler().AddClient(client)
 		r.Output(APIResponse{Error: false, Message: "Client added"})
 	} else {
 		cl.SetIP(c.IP)
@@ -37,7 +37,7 @@ func (ClientHandler) Delete(r *HTTPHandler) {
 		return
 	}
 
-	b := r.Server.GetClients().RemoveClientByID(r.Request.ID)
+	b := r.Server.GetHandler().RemoveClientByID(r.Request.ID)
 	if !b {
 		r.Output(APIResponse{Error: true, Message: "Client ID does not exists in cache"})
 		return

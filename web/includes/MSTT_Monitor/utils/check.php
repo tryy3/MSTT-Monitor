@@ -80,13 +80,8 @@
     }
 
     function getChecks($db, $clientID, $commandID = -1, $limit = 1) {
-        if ($commandID == -1) {
-            $stmt = $db->prepare("SELECT * FROM `checks` WHERE `client_id`=? ORDER BY timestamp DESC");
-            $stmt->execute(array($clientID));
-        } else {
-            $stmt = $db->prepare("SELECT * FROM `checks` WHERE `client_id`=? AND `command_id`=? ORDER BY timestamp DESC");
-            $stmt->execute(array($clientID, $commandID));
-        }
+        $stmt = $db->prepare("SELECT * FROM `checks` WHERE `client_id`=? AND `command_id`=? ORDER BY timestamp DESC LIMIT ?");
+        $stmt->execute(array($clientID, $commandID, $limit));
 
         $checks = array();
         if ($stmt->rowCount() <= 0) {
@@ -104,7 +99,7 @@
     }
 
     function getAllChecks($db, $clientID, $limit = 1) {
-        $stmt = $db->prepare("SELECT `command_id` FROM `checks` WHERE `client_id`=? GROUP BY `command_id`");
+        $stmt = $db->prepare("SELECT DISTINCT `command_id` FROM `checks` WHERE `client_id`=?");
         $stmt->execute(array($clientID));
         if ($stmt->rowCount() <= 0) {
             return array();

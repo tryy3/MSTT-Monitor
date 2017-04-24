@@ -1,21 +1,49 @@
 package server
 
 import (
+	"database/sql"
 	"sync"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
-func NewCheck(ch checkFields, command *Command) (*Check, error) {
+func NewCheckNoFields(command *Command) *Check {
 	check := &Check{
 		rw:       new(sync.RWMutex),
 		Command:  command,
-		PastID:   ch.ID,
-		Checked:  ch.Checked,
-		Err:      ch.Error,
-		Finished: ch.Finished,
+		PastID:   -1,
+		Checked:  false,
+		Err:      false,
+		Finished: true,
 	}
+	return check
+}
+
+func NewCheck(ch checkFields, command *Command) (*Check, error) {
+	check := NewCheckNoFields(command)
+	check.PastID = ch.ID
+	check.Checked = ch.Checked
+	check.Err = ch.Error
+	check.Finished = ch.Finished
 	err := check.SetTimestampFromString(ch.Timestamp)
 	return check, err
+}
+
+func NewCheckFromDB(db *Database, stmt *sqlx.Stmt, clientID int64, cmd *Command) (*Check, error) {
+	var ch *Check
+	check, err := db.GetCheck(stmt, clientID, cmd.GetID())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ch = NewCheckNoFields(cmd)
+			return ch, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	ch, err = NewCheck(check, cmd)
+	return ch, err
 }
 
 type Check struct {
@@ -143,7 +171,8 @@ func (c *Check) AddAlert(alert *Alert) {
 func (c *Check) RemoveAlertByID(id int64) {
 	c.rw.Lock()
 	defer c.rw.Unlock()
-	for i, a := range c.Alerts {
+	for i := len(c.Alerts) - 1; i >= 0; i-- {
+		a := c.Alerts[i]
 		if a.GetID() == id {
 			c.Alerts = append(c.Alerts[:i], c.Alerts[i+1:]...)
 			return

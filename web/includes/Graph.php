@@ -239,6 +239,7 @@
             } else {
                 $stmt->execute(array($id, $command_id, $from, $to));
             }
+            
             if ($stmt->rowCount() <= 0) {
                 return array();
             }

@@ -143,7 +143,7 @@
                             $errors->setMessage("Group parameter is not set.");
                             break;
                         }
-                        $errors = $API->Group()->removeCommand($_GET["id"], $_GET["group"]);
+                        $errors = $API->Group()->removeCommand(intval($_GET["id"]), $_GET["group"]);
                         break;
                     case "add_command_group":
                         if (!isset($_GET["group"])) {
@@ -166,7 +166,7 @@
                             $errors->setMessage("ID parameter is not set.");
                             break;
                         }
-                        $errors = $API->Command()->delete($_GET["id"]);
+                        $errors = $API->Command()->delete(intval($_GET["id"]));
                         break;
                     case "edit_command":
                         if (!isset($_GET["id"])) {
@@ -183,16 +183,16 @@
                         }
                         switch($_GET["key"]) {
                             case "command":
-                                $errors = $API->Command()->editCommand($_GET["id"], $_GET["value"]);
+                                $errors = $API->Command()->editCommand(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             case "namn":
-                                $errors = $API->Command()->editName($_GET["id"], $_GET["value"]);
+                                $errors = $API->Command()->editName(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             case "description":
-                                $errors = $API->Command()->editDescription($_GET["id"], $_GET["value"]);
+                                $errors = $API->Command()->editDescription(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             case "format":
-                                $errors = $API->Command()->editFormat($_GET["id"], $_GET["value"]);
+                                $errors = $API->Command()->editFormat(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             default:
                                 $errors->setMessage("Invalid key");
@@ -213,7 +213,7 @@
                             $errors->setMessage("ID parameter is not set.");
                             break;
                         }
-                        $errors = $API->Server()->delete($_GET["id"]);
+                        $errors = $API->Server()->delete(intval($_GET["id"]));
                         break;
                     case "edit_server":
                         if (!isset($_GET["id"])) {
@@ -230,10 +230,10 @@
                         }
                         switch($_GET["key"]) {
                             case "ip":
-                                $errors = $API->Server()->editIP($_GET["id"], $_GET["value"]);
+                                $errors = $API->Server()->editIP(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             case "namn":
-                                $errors = $API->Server()->editName($_GET["id"], $_GET["value"]);
+                                $errors = $API->Server()->editName(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             default:
                                 $errors->setMessage("Invalid key");
@@ -287,34 +287,34 @@
                         }
                         switch($_GET["key"]) {
                             case "alert":
-                                $errors = $API->Alerts()->editAlert($_GET["id"], $_GET["value"]);
+                                $errors = $API->Alerts()->editAlert(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             case "value":
-                                $errors = $API->Alerts()->editValue($_GET["id"], $_GET["value"]);
+                                $errors = $API->Alerts()->editValue(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             case "count":
                                 if (!is_numeric($_GET["value"])) {
                                     $errors->setMessage("Value needs to be numeric.");
                                     break;
                                 }
-                                $errors = $API->Alerts()->editCount($_GET["id"], intval($_GET["value"]));
+                                $errors = $API->Alerts()->editCount(intval($_GET["id"]), intval($_GET["value"]));
                                 break;
                             case "command":
                                 if (!is_numeric($_GET["value"])) {
                                     $errors->setMessage("Value needs to be numeric.");
                                     break;
                                 }
-                                $errors = $API->Alerts()->editCommand($_GET["id"], intval($_GET["value"]));
+                                $errors = $API->Alerts()->editCommand(intval($_GET["id"]), intval($_GET["value"]));
                                 break;
                             case "delay":
                                 if (!is_numeric($_GET["value"])) {
                                     $errors->setMessage("Value needs to be numeric.");
                                     break;
                                 }
-                                $errors = $API->Alerts()->editDelay($_GET["id"], intval($_GET["value"]));
+                                $errors = $API->Alerts()->editDelay(intval($_GET["id"]), intval($_GET["value"]));
                                 break;
                             case "service":
-                                $errors = $API->Alerts()->editService($_GET["id"], $_GET["value"]);
+                                $errors = $API->Alerts()->editService(intval($_GET["id"]), $_GET["value"]);
                                 break;
                             default:
                                 $errors->setMessage("Invalid key");

@@ -537,10 +537,34 @@ $(document).ready(function() {
             group = $this.data("group")
             if (toggle) {
                 command = $($this.children()[index]).data("id")
-                console.log({ "api": "add_command_group", "command": command, "group": group })
                 $.getJSON('api.php', { "api": "add_command_group", "command": command, "group": group }, function(data) {
+                    console.log(data)
                     if (!data.error) {
                         alert("success", "Success! ", data.message);
+                        $table = $this.closest(".panel").find("table")
+                        $tr = $("<tr>")
+                        $tr.append($("<td>").text(data.message[0]))
+                        $tr.append($("<td>").text(data.message[1]))
+                        $tr.append($("<td>")
+                            .text(data.message[2])
+                            .attr("contenteditable", true)
+                            .data("previous", data.message[2])
+                            .data("for", "group")
+                            .data("target", "next_check")
+                            .data("id", data.message[0]))
+                        $tr.append($("<td>")
+                            .append($("<select>")
+                                .data("for", "group")
+                                .data("id", data.message[0])
+                                .data("target", "stop_error")
+                                .addClass("form-control")
+                                .style({"width": "80%", "display": "inline"})
+                                .append($("<option>").text("True"))
+                                .append($("<option>").text("False").attr("selected", "true")))
+                            .append($("<i>")
+                                .data("id", data.message[0])
+                                .addClass("remove-command-group fa fa-close fa-close-red fa-lg pull-right")))
+                        $table.append($tr)
                     } else {
                         alert("danger", "Error! ", data.message);
                     }
@@ -682,6 +706,7 @@ $(document).ready(function() {
     });
 
     $(".clickable-row").click(function() {
+        console.log($(this).data("href"))
         if (!$(this).attr("contenteditable")) {
             window.location = $(this).data("href");
         }
@@ -699,6 +724,7 @@ $(document).ready(function() {
         }
 
         $.getJSON("api.php", { "api": "create_client", "ip": ip }, function(data) {
+            console.log(data)
             if (!data.error) {
                 setTimeout(function() {
                     window.location = "?page=client&id="+data.message

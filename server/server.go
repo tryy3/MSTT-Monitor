@@ -10,7 +10,7 @@ import (
 )
 
 type Server struct {
-	clients *Clients
+	handler *Handler
 
 	config   *Config
 	database *Database
@@ -47,13 +47,13 @@ func (s *Server) Start(level cue.Level) {
 	}
 
 	s.log.Info("Creating all clients")
-	clients, err := NewClients(s.database)
+	handler, err := NewHandler(s.database)
 	if err != nil {
 		s.database.Close()
 		s.log.Panic(err, "Something went wrong when creating all the clients")
 		return
 	}
-	s.clients = clients
+	s.handler = handler
 	s.log.Info("Finished creating all clients")
 
 	s.log.Info("Starting web API")
@@ -69,7 +69,7 @@ func (s *Server) Start(level cue.Level) {
 }
 
 func (s *Server) Loop() {
-	for cl := range s.clients.IterClients() {
+	for cl := range s.handler.IterClients() {
 		go cl.Check(s)
 	}
 }
@@ -86,6 +86,6 @@ func (s Server) GetConfig() *Config {
 	return s.config
 }
 
-func (s Server) GetClients() *Clients {
-	return s.clients
+func (s Server) GetHandler() *Handler {
+	return s.handler
 }

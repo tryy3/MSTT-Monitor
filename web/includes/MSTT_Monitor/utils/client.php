@@ -324,6 +324,10 @@
         while($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $client = new Client($row);
             foreach (explode(",", $row["group_names"]) as $groupName) {
+                if (!isset($groups[$groupName])) {
+                    continue;
+                }
+                
                 $client->addGroup($groups[$groupName]);
 
                 foreach ($groups[$groupName]->getCommands() as $command) {
@@ -334,9 +338,9 @@
             }
             array_push($clients, $client);
 
-            foreach ($alertOptions as $option) {
+            foreach ($alertSettings as $setting) {
                 if ($setting->getClientID() == $client->getID()) {
-                    $client->addAlert($option);
+                    $client->addAlert($setting);
                 }
             }
             $client->initAlerts($db);
@@ -352,7 +356,7 @@
         }
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $client = new Client($row);
-        $alertOptions = getAlertOptions($db, $id);
+        $alertSettings = getAlertOptions($db, $id);
 
         foreach (explode(",", $row["group_names"]) as $groupName) {
             $group = getGroup($db, $groupName);
@@ -365,7 +369,7 @@
             }
         }
 
-        $client->setAlertOptions($alertOptions);
+        $client->setAlertOptions($alertSettings);
         $client->initAlerts($db);
         return $client;
     }

@@ -23,7 +23,7 @@ func (AlertHandler) Insert(r *HTTPHandler) {
 	}
 	defer alertStmt.Close()
 
-	for cl := range r.Server.GetClients().IterClients() {
+	for cl := range r.Server.GetHandler().IterClients() {
 		for ch := range cl.IterChecks() {
 			for al := range ch.IterAlerts() {
 				if al.GetID() == r.Request.ID {
@@ -34,7 +34,7 @@ func (AlertHandler) Insert(r *HTTPHandler) {
 		}
 	}
 
-	for cl := range r.Server.GetClients().IterClients() {
+	for cl := range r.Server.GetHandler().IterClients() {
 		if cl.GetID() == alert.ClientID {
 			for ch := range cl.IterChecks() {
 				if ch.GetCommand().GetID() == alert.CommandID {
@@ -71,7 +71,7 @@ func (AlertHandler) Update(r *HTTPHandler) {
 		return
 	}
 
-	for cl := range r.Server.GetClients().IterClients() {
+	for cl := range r.Server.GetHandler().IterClients() {
 		if cl.GetID() == alert.ClientID {
 			for ch := range cl.IterChecks() {
 				if ch.GetCommand().GetID() == alert.CommandID {
@@ -95,7 +95,7 @@ func (AlertHandler) Delete(r *HTTPHandler) {
 		return
 	}
 
-	for cl := range r.Server.GetClients().IterClients() {
+	for cl := range r.Server.GetHandler().IterClients() {
 		for ch := range cl.IterChecks() {
 			for alert := range ch.IterAlerts() {
 				if alert.GetID() == r.Request.ID {

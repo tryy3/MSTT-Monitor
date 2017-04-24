@@ -7,7 +7,7 @@ import (
 // NewGroup skapar en ny Grupp
 func NewGroup(name string) *Group {
 	return &Group{
-		rw:       new(sync.RWMutex),
+		rw:       &sync.RWMutex{},
 		Name:     name,
 		Commands: []*Command{},
 	}
@@ -99,8 +99,8 @@ func (g *Group) RemoveCommand(i int) (ok bool) {
 func (g *Group) RemoveCommandByID(id int64) (ok bool) {
 	g.rw.Lock()
 	defer g.rw.Unlock()
-	for i := g.Count() - 1; i >= 0; i-- {
-		c := g.GetCommand(i)
+	for i := len(g.Commands) - 1; i >= 0; i-- {
+		c := g.Commands[i]
 		if c != nil && c.GetID() == id {
 			g.Commands = append(g.Commands[:i], g.Commands[i+1:]...)
 			return true

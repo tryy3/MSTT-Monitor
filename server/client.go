@@ -14,7 +14,7 @@ import (
 	"github.com/bobziuchkovski/cue"
 )
 
-func NewClient(cl *clientFields) *Client {
+func NewClient(cl clientFields) *Client {
 	return &Client{
 		rw: new(sync.RWMutex),
 		IP: cl.IP,
@@ -394,8 +394,7 @@ func (c *Client) Check(s *Server) {
 			continue
 		}
 
-		t := check.GetTimestamp()
-		if t.IsZero() || time.Now().Before(t) {
+		if time.Now().Before(check.GetTimestamp()) {
 			continue
 		}
 
